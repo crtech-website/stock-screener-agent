@@ -1,0 +1,41 @@
+name: Weekly scorecard
+
+on:
+  schedule:
+    - cron: "7 14 * * 6"
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: market-scanner
+
+jobs:
+  scorecard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: market-scanner/requirements.txt
+      - run: pip install -r requirements.txt
+      - uses: actions/cache/restore@v4
+        with:
+          path: market-scanner/.cache/stocks
+          key: stocks-data-scorecard
+          restore-keys: stocks-data-
+      - uses: actions/cache/restore@v4
+        with:
+          path: market-scanner/.cache/crypto
+          key: crypto-data-scorecard
+          restore-keys: crypto-data-
+      - run: |
+          python -m scanner scorecard stocks --send || true
+          python -m scanner scorecard crypto --send || true
+        env:
+          MASSIVE_API_KEY: ${{ secrets.MASSIVE_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}

@@ -1,18 +1,16 @@
 {
  "market": "stocks",
- "generated_utc": "2026-10-09T16:24:25Z",
- "generated_new_york": "Friday, Oct 9, 2026, 12:24 PM New York time",
+ "generated_utc": "2026-10-09T20:04:06Z",
+ "generated_new_york": "Friday, Oct 9, 2026, 4:04 PM New York time",
  "as_of": "2026-10-08",
  "prices_from": "the Oct 8 market close (4:00 PM New York time)",
  "market_mood": "S&P 500 (SPY) is above its 200-day average: the overall market is in an uptrend.",
  "held_back": [
   "Oversold bounce",
-  "IBS reversion"
+  "Trend breakout",
+  "Momentum leaders"
  ],
- "loading": [
-  "Trend breakout (has 228 of 252 days)",
-  "Momentum leaders (has 228 of 253 days)"
- ],
+ "loading": [],
  "risk_per_trade_pct": 1,
  "strategies": {
   "oversold_bounce": {
@@ -20,36 +18,60 @@
    "hold_days": 5,
    "market_filter": false,
    "verdict": "losing",
-   "past_trades": 1477,
-   "win_rate_pct": 42.52,
-   "avg_win_pct": 12.61,
-   "avg_loss_pct": -14.17,
-   "avg_per_trade_pct": -2.78,
-   "market_same_days_pct": 0.08
+   "past_trades": 2340,
+   "win_rate_pct": 42.26,
+   "avg_win_pct": 12.05,
+   "avg_loss_pct": -13.54,
+   "avg_per_trade_pct": -2.73,
+   "market_same_days_pct": 0.23
   },
   "connors_rsi2": {
    "label": "Connors RSI(2) pullback",
    "hold_days": 5,
    "market_filter": false,
    "verdict": "unproven",
-   "past_trades": 2626,
-   "win_rate_pct": 59.56,
-   "avg_win_pct": 2.65,
-   "avg_loss_pct": -3.8,
-   "avg_per_trade_pct": 0.04,
-   "market_same_days_pct": -0.65
+   "past_trades": 9904,
+   "win_rate_pct": 63.89,
+   "avg_win_pct": 3.54,
+   "avg_loss_pct": -4.38,
+   "avg_per_trade_pct": 0.68,
+   "market_same_days_pct": 0.11
   },
   "ibs_reversion": {
    "label": "IBS reversion",
    "hold_days": 3,
    "market_filter": false,
+   "verdict": "unproven",
+   "past_trades": 31933,
+   "win_rate_pct": 54.02,
+   "avg_win_pct": 3.16,
+   "avg_loss_pct": -3.61,
+   "avg_per_trade_pct": 0.04,
+   "market_same_days_pct": 0.07
+  },
+  "trend_breakout": {
+   "label": "Trend breakout",
+   "hold_days": 20,
+   "market_filter": true,
    "verdict": "losing",
-   "past_trades": 5877,
-   "win_rate_pct": 46.32,
-   "avg_win_pct": 2.62,
-   "avg_loss_pct": -3.09,
-   "avg_per_trade_pct": -0.44,
-   "market_same_days_pct": -0.58
+   "past_trades": 899,
+   "win_rate_pct": 34.15,
+   "avg_win_pct": 9.19,
+   "avg_loss_pct": -7.54,
+   "avg_per_trade_pct": -1.83,
+   "market_same_days_pct": 0.03
+  },
+  "momentum": {
+   "label": "Momentum leaders",
+   "hold_days": 21,
+   "market_filter": true,
+   "verdict": "losing",
+   "past_trades": 262,
+   "win_rate_pct": 34.73,
+   "avg_win_pct": 14.66,
+   "avg_loss_pct": -16.33,
+   "avg_per_trade_pct": -5.57,
+   "market_same_days_pct": -0.99
   }
  },
  "picks": [
@@ -69,7 +91,7 @@
    "as_of": "2026-10-08",
    "close": 17.43000031,
    "limit_buy": 17.43871531,
-   "stop": 14.29220813,
+   "stop": 14.29220825,
    "target": 18.40999985,
    "hold_days": 5,
    "position_pct": 5.5,
@@ -78,7 +100,7 @@
     "dilution: 424B5 2026-09-16",
     "NEWS RED FLAG: BBNX Stock Notice: Beta Bionics Stock Plummeted 37% after Medical Device Safety Issues Disclosed - Securities Fraud Class Action Filed - PR Newswire"
    ],
-   "latest_headline": "Beta Bionics (BBNX) Stock Fair Value Rises After Mint Clearance And Analyst Target Changes - Yahoo Finance"
+   "latest_headline": "BBNX Investor Alert: Beta Bionics, Inc. Securities Class Action Notice - Contact Levi & Korsinsky - FinancialContent"
   },
   {
    "strategy": "connors_rsi2",
@@ -96,7 +118,7 @@
    "as_of": "2026-10-08",
    "close": 82.43000031,
    "limit_buy": 82.47121531,
-   "stop": 71.29568921,
+   "stop": 71.29568911,
    "target": 85.79199982,
    "hold_days": 5,
    "position_pct": 7.4,
@@ -121,12 +143,81 @@
    "as_of": "2026-10-08",
    "close": 14.15999985,
    "limit_buy": 14.16707985,
-   "stop": 12.13959491,
+   "stop": 12.13959504,
    "target": 15.15200005,
    "hold_days": 5,
    "position_pct": 7.0,
    "warnings": [],
-   "latest_headline": "IDN,PFX,BW,MATV,LIEN,WWD,CMRA,FRD,NVCT,PESI,CRGY | Stock Prices | Quote Comparison - Yahoo! Finance Canada"
+   "latest_headline": "IDN,PFX,MATV,WWD,CMRA,FRD,CION,NVCT,PESI,CRGY,FUSB | Stock Prices | Quote Comparison - Yahoo! Finance Canada"
+  },
+  {
+   "strategy": "ibs_reversion",
+   "strategy_label": "IBS reversion",
+   "what_it_does": "Buys a stock that is in an uptrend but closed near the low of the day, betting on a bounce over the next few days.",
+   "why_picked": "In an uptrend, but closed in the bottom 0% of today's price range, a sign of a short-term overreaction.",
+   "verdict": "unproven",
+   "symbol": "FRHC",
+   "id": "FRHC",
+   "name": "Freedom Holding Corp.",
+   "market_cap": 10633403922.199999,
+   "change_1d_pct": -4.6,
+   "change_5d_pct": -3.9,
+   "change_20d_pct": 2.4,
+   "as_of": "2026-10-08",
+   "close": 166.69999695,
+   "limit_buy": 166.78334695,
+   "stop": 154.17041794,
+   "target": 172.96478645,
+   "hold_days": 3,
+   "position_pct": 13.2,
+   "warnings": [],
+   "latest_headline": "Freedom Holding (FRHC) Could Be 64% Overvalued Following Greenest Companies Recognition - Yahoo Finance"
+  },
+  {
+   "strategy": "ibs_reversion",
+   "strategy_label": "IBS reversion",
+   "what_it_does": "Buys a stock that is in an uptrend but closed near the low of the day, betting on a bounce over the next few days.",
+   "why_picked": "In an uptrend, but closed in the bottom 0% of today's price range, a sign of a short-term overreaction.",
+   "verdict": "unproven",
+   "symbol": "BZH",
+   "id": "BZH",
+   "name": "Beazer Homes USA, Inc. New",
+   "market_cap": 891366204.43,
+   "change_1d_pct": -0.0,
+   "change_5d_pct": 0.1,
+   "change_20d_pct": 0.5,
+   "as_of": "2026-10-08",
+   "close": 33.40999985,
+   "limit_buy": 33.42670485,
+   "stop": 33.19275184,
+   "target": 33.51862385,
+   "hold_days": 3,
+   "position_pct": 20,
+   "warnings": [],
+   "latest_headline": "Liquidity Mapping Around (BZH) Price Events - Stock Traders Daily"
+  },
+  {
+   "strategy": "ibs_reversion",
+   "strategy_label": "IBS reversion",
+   "what_it_does": "Buys a stock that is in an uptrend but closed near the low of the day, betting on a bounce over the next few days.",
+   "why_picked": "In an uptrend, but closed in the bottom 0% of today's price range, a sign of a short-term overreaction.",
+   "verdict": "unproven",
+   "symbol": "OGN",
+   "id": "OGN",
+   "name": "Organon & Co.",
+   "market_cap": 3610879703.75,
+   "change_1d_pct": -0.3,
+   "change_5d_pct": 0.3,
+   "change_20d_pct": 0.9,
+   "as_of": "2026-10-08",
+   "close": 13.75,
+   "limit_buy": 13.756875,
+   "stop": 13.6628271,
+   "target": 13.79358645,
+   "hold_days": 3,
+   "position_pct": 20,
+   "warnings": [],
+   "latest_headline": "Why Is Orogen Royalties (TSXV:OGN) Drawing Attention in Gold Stocks? - Kalkine Media"
   }
  ]
 }

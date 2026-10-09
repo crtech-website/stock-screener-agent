@@ -1,17 +1,21 @@
 import logging
 
+import numpy as np
+
+from . import plan
 from .backtest import has_edge
 from .indicators import pct_change, rsi, sma
-from .strategies import active_strategies, signals
+from .strategies import active_strategies, describe, explain, signals
 
 log = logging.getLogger(__name__)
 
 
 def candidates(panel, cfg, report):
-    """Today's signals from every active strategy, best-scored first within each strategy."""
+    """Today's signals from every active strategy, each with a full trade plan."""
     c = panel.close
+    last = c.iloc[-1]
+    atr_now = plan.atr(panel, cfg["trading"]["atr_period"]).iloc[-1]
     rsi14 = rsi(c, 14).iloc[-1]
-    sma200 = sma(c, 200).iloc[-1]
     chg = {n: pct_change(c, n).iloc[-1] for n in (1, 5, 20)}
     dollar_vol = sma((c * panel.volume).fillna(0), 20).iloc[-1]
     mcap = panel.market_cap.iloc[-1] if panel.market_cap is not None else None
@@ -20,28 +24,41 @@ def candidates(panel, cfg, report):
     out = []
     for strat, prm in active_strategies(cfg, panel):
         entry = report["strategies"].get(strat.name, {})
-        if cfg["backtest"]["require_edge"] and not (entry and has_edge(entry, cfg)):
+        if cfg["backtest"]["require_edge"] and not (entry and has_edge(entry)):
             log.info("%s skipped: backtest shows no edge", strat.name)
+            continue
+        if cfg["alerts"]["skip_losing_strategies"] and entry and entry["headline"].get("verdict") == "losing":
+            log.info("%s skipped: lost money in the backtest", strat.name)
             continue
         sig, score = signals(strat, prm, panel)
         today = sig.iloc[-1]
         hits = score.iloc[-1][today[today].index].sort_values(ascending=False)
         log.info("%s: %d signals today", strat.name, len(hits))
+        sma_now = sma(c, prm["target_sma"]).iloc[-1] if prm.get("target_sma") else None
         for asset, sc in hits.head(cfg["checks"]["candidates_per_strategy"]).items():
-            price = c[asset].iloc[-1]
+            price, a = float(last[asset]), float(atr_now[asset])
+            if not (np.isfinite(a) and a > 0):
+                continue
+            stop, target = plan.levels(price, a, float(sma_now[asset]) if sma_now is not None else None, prm, cfg)
             out.append({
                 "strategy": strat.name,
                 "strategy_label": strat.label,
+                "strategy_text": describe(strat.name, panel.market, prm),
+                "reason": explain(strat.name, panel, prm, asset, sc),
                 "hold": prm["hold"],
                 "as_of": panel.last_date,
                 "id": asset,
                 "symbol": panel.symbols.get(asset, asset),
                 "name": panel.names.get(asset, ""),
                 "name_only": panel.names.get(asset, asset),
-                "price": float(price),
+                "price": price,
+                "entry": price,
+                "stop": float(stop),
+                "target": float(target),
+                "position_pct": plan.position_pct(price, float(stop), cfg),
+                "atr": a,
                 "score": float(sc),
                 "rsi14": round(float(rsi14[asset]), 1),
-                "pct_from_sma200": round(float((price / sma200[asset] - 1) * 100), 1) if sma200[asset] == sma200[asset] else None,
                 "change_1d_pct": round(float(chg[1][asset]), 1),
                 "change_5d_pct": round(float(chg[5][asset]), 1),
                 "change_20d_pct": round(float(chg[20][asset]), 1),
@@ -63,3 +80,10 @@ def pick(cands, cfg, extra=0):
         if len(by_strategy[c["strategy"]]) < cfg["alerts"]["picks_per_strategy"] + extra:
             by_strategy[c["strategy"]].append(c)
     return by_strategy
+
+
+def held_back(report, cfg):
+    """Labels of strategies whose picks are withheld because they lost money in testing."""
+    if not cfg["alerts"]["skip_losing_strategies"]:
+        return []
+    return [e["label"] for e in report["strategies"].values() if e["headline"].get("verdict") == "losing"]

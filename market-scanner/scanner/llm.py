@@ -36,7 +36,7 @@ OUTPUT_SPEC = """Reply with exactly one block and nothing after it:
 
 VERDICT_RE = re.compile(r"<verdict>\s*(\{.*?\})\s*</verdict>", re.S)
 
-FACT_KEYS = ["strategy_label", "symbol", "name", "price", "change_1d_pct", "change_5d_pct", "change_20d_pct",
+FACT_KEYS = ["strategy_label", "reason", "symbol", "name", "price", "stop", "target", "change_1d_pct", "change_5d_pct", "change_20d_pct",
              "rsi14", "pct_from_sma200", "market_cap", "avg_dollar_volume", "flags", "severe", "headlines", "tvl"]
 
 

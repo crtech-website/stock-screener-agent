@@ -41,7 +41,9 @@ def cmd_scan(args, cfg, out):
 
     picks = scan.pick(cands, cfg)
     (out / f"{args.market}-candidates.json").write_text(json.dumps(cands, indent=1, default=str))
-    text = alerts.format_alert(args.market, picks, bool(panel.regime.iloc[-1]), now)
+    months = round(len(panel.close) / (21 if args.market == "stocks" else 30.4))
+    text = alerts.format_alert(args.market, picks, bool(panel.regime.iloc[-1]), now, cfg,
+                               months=months, as_of=panel.last_date, held_back=scan.held_back(report, cfg))
     print(text)
 
     if not args.no_ledger:

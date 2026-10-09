@@ -24,38 +24,52 @@ crypto:
   cost_bps: 40
 
 # Each strategy can override any setting per market under a `stocks:` or `crypto:` key.
-# regime: true means the strategy only fires while the benchmark is above its 200-day average.
-# hold: the holding period (in bars) the backtest and scorecard judge the strategy by.
+# regime: true = only fires while the benchmark is above its 200-day average.
+#
+# Trade plan for every pick (the backtest tests this exact plan):
+#   buy at the signal day's close
+#   stop loss   = buy price - stop_atr x ATR      (ATR = average daily price move, 14 days)
+#   take profit = buy price + target_atr x ATR, or the target_sma-day average if that is higher
+#   hold        = sell at the close after this many days if neither price was hit
 strategies:
   oversold_bounce:
     enabled: true
     markets: [stocks, crypto]
     regime: false
-    hold: 5
     rsi_below: 30
     drop_pct: 15
     drop_bars: 2
+    hold: 5
+    stop_atr: 2.0
+    target_atr: 1.5
 
   connors_rsi2:
     enabled: true
     markets: [stocks, crypto]
     regime: false
-    hold: 5
     rsi2_below: 5
+    hold: 5
+    stop_atr: 2.5
+    target_atr: 0.5
+    target_sma: 5              # Connors' exit: back above the 5-day average
 
   ibs_reversion:
     enabled: true
-    markets: [stocks]                  # needs daily high/low, which the crypto feed lacks
+    markets: [stocks]          # needs daily high/low, which the crypto feed lacks
     regime: false
-    hold: 3
     ibs_below: 0.15
+    hold: 3
+    stop_atr: 2.0
+    target_atr: 1.0
 
   trend_breakout:
     enabled: true
     markets: [stocks, crypto]
     regime: true
-    hold: 20
     volume_mult: 1.5
+    hold: 20
+    stop_atr: 2.0              # Turtle-style 2 ATR stop
+    target_atr: 4.0            # aims to win twice what it risks
     stocks: {fast: 50, mid: 150, slow: 200, high_window: 252}
     crypto: {fast: 20, mid: 50, slow: 100, high_window: 55}
 
@@ -63,13 +77,22 @@ strategies:
     enabled: true
     markets: [stocks, crypto]
     regime: true
+    stop_atr: 3.0
+    target_atr: 6.0
     stocks: {lookback: 252, skip: 21, top_pct: 0.05, rebalance: monthly, hold: 21}
     crypto: {lookback: 90, skip: 7, top_pct: 0.10, rebalance: weekly, hold: 7}
 
+trading:
+  atr_period: 14
+  max_stop_pct: 25           # never place a stop more than this % below the buy price
+  risk_per_trade_pct: 1      # position size is set so a stop-out loses this % of the account
+  max_position_pct: 20       # and never more than this % of the account in one trade
+  example_account: 1000      # dollar example shown in each alert
+
 backtest:
-  horizons: [1, 5, 10, 20]
   require_edge: false        # true = stay silent for strategies whose backtest doesn't beat the market
   min_t_stat: 2.0
+  min_trades: 30
 
 checks:
   candidates_per_strategy: 5
@@ -85,4 +108,5 @@ llm:
 
 alerts:
   picks_per_strategy: 3
+  skip_losing_strategies: true  # hold back picks from strategies that lost money in the backtest
   send_when_empty: false

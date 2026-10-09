@@ -37,6 +37,23 @@ That line is the point of the backtest: on that sample, buying crypto RSI(2) dip
 
 "vs market" is the average return of the signals minus the average return of all liquid assets over the same days, after costs. A t-stat under 2 means the edge could easily be noise. Set `backtest.require_edge: true` to silence strategies that don't clear `min_t_stat`.
 
+## The trade plan in each alert
+
+Every pick comes with four orders, and the backtest tests exactly these orders:
+
+1. **Buy** with a limit order at the last close. Cancel it if it hasn't filled by the next close.
+2. **Take profit**: a limit sell above the buy price.
+3. **Stop loss**: a stop sell below the buy price.
+4. **Time limit**: sell at the market if neither price is hit within the strategy's holding period.
+
+The distances come from ATR, the average daily price move over the last 14 days, so a jumpy coin gets wider levels than a calm stock. Each strategy's settings are in `config.yaml` (`stop_atr`, `target_atr`, `hold`). The stop is never more than `max_stop_pct` (25%) below the buy price.
+
+Position size is set so that hitting the stop loses about 1% of your account (`risk_per_trade_pct`), capped at 20% of the account in one trade.
+
+Strategies whose plan lost money in the backtest are held back from alerts (`skip_losing_strategies`), and the alert says which ones.
+
+Backtest limits to know: crypto data has daily closes only, so stops are checked against closes. A real stop order can be triggered by an intraday dip that recovers by the close, so live crypto stop-outs will happen somewhat more often than the backtest shows. When a day touches both the stop and the target, the backtest assumes the stop hit first.
+
 ## Setup
 
 1. Push this folder to a GitHub repo. A public repo gets unlimited Actions minutes; a private one gets 2,000 a month, about 10x what this uses. Note that the `ledger/` folder of picks is visible in a public repo.

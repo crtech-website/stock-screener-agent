@@ -8,7 +8,7 @@ import pandas as pd
 import pytest
 import yaml
 
-from scanner import alerts, backtest, checks, data_crypto, data_stocks, ledger, llm, scan
+from scanner import alerts, backtest, checks, data_crypto, data_stocks, ledger, llm, plan, scan
 from scanner.indicators import ibs, rsi
 from scanner.panel import Panel
 from scanner.strategies import REGISTRY, active_strategies, params_for, signals
@@ -117,23 +117,79 @@ def test_regime_filter_blocks_signals_in_downtrend():
 
 # ---------- backtest ----------
 
-def test_event_stats_numbers():
-    dates = [f"2026-01-{d:02d}" for d in range(1, 11)]
-    close = pd.DataFrame({"X": [10, 11, 12, 13, 14, 15, 16, 17, 18, 19.0],
-                          "Y": [10.0] * 10}, index=dates)
-    sig = pd.DataFrame(False, index=dates, columns=close.columns)
-    sig.loc["2026-01-01", "X"] = True
-    p = Panel("stocks", close, close * 0 + 1e6, close.notna(), pd.Series(dtype=float))
-    s = backtest.event_stats(p, sig, 1, cost=0.0)
-    assert s["n"] == 1
-    assert s["avg_ret"] == pytest.approx(0.1)
-    assert s["avg_excess"] == pytest.approx(0.1 - 0.05)  # market = mean(X +10%, Y 0%)
+def _bars(rows):
+    a = np.array(rows, dtype=float)
+    return a[:, None]  # (days, 1 asset)
+
+
+def test_simulate_exits_target_stop_time_and_gap():
+    # day: close, high, low. Entry at day 0 close = 100, stop 90, target 110, hold 3.
+    c = _bars([100, 104, 108, 109])
+    h = _bars([100, 106, 111, 110])
+    l = _bars([100, 98, 105, 100])
+    t = plan.simulate(c, h, l, np.array([0]), np.array([0]),
+                      np.array([90.0]), np.array([110.0]), 3, 0.0)
+    assert t["exit_reason"][0] == "target" and t["ret"][0] == pytest.approx(0.10) and t["exit_day"][0] == 2
+
+    # Both touched on day 1: the stop is assumed first.
+    h2, l2 = _bars([100, 112, 0, 0]), _bars([100, 89, 0, 0])
+    t = plan.simulate(c, h2, l2, np.array([0]), np.array([0]),
+                      np.array([90.0]), np.array([110.0]), 3, 0.0)
+    assert t["exit_reason"][0] == "stop" and t["ret"][0] == pytest.approx(-0.10)
+
+    # Gap down: the whole day trades below the stop, so the fill is that day's high, not the stop.
+    h3, l3 = _bars([100, 85, 0, 0]), _bars([100, 80, 0, 0])
+    t = plan.simulate(c, h3, l3, np.array([0]), np.array([0]),
+                      np.array([90.0]), np.array([110.0]), 3, 0.0)
+    assert t["ret"][0] == pytest.approx(-0.15)
+
+    # Neither: sold at the close after 3 days.
+    flat = _bars([100, 101, 102, 103])
+    t = plan.simulate(flat, flat, flat, np.array([0]), np.array([0]),
+                      np.array([90.0]), np.array([110.0]), 3, 0.001)
+    assert t["exit_reason"][0] == "time" and t["ret"][0] == pytest.approx(0.029)
+
+    # Not enough days left to finish the plan: dropped.
+    t = plan.simulate(flat, flat, flat, np.array([2]), np.array([0]),
+                      np.array([90.0]), np.array([110.0]), 3, 0.0)
+    assert t.empty
+
+
+def test_levels_and_position_size():
+    prm = {"stop_atr": 2.0, "target_atr": 4.0}
+    stop, target = plan.levels(100.0, 5.0, None, prm, CFG)
+    assert (stop, target) == (90.0, 120.0)
+    # A huge ATR is capped by max_stop_pct.
+    stop, _ = plan.levels(100.0, 40.0, None, prm, CFG)
+    assert stop == pytest.approx(100 * (1 - CFG["trading"]["max_stop_pct"] / 100))
+    # Connors-style target: the moving average when it's further away than the ATR target.
+    _, target = plan.levels(100.0, 2.0, 106.0, {"stop_atr": 2.5, "target_atr": 0.5}, CFG)
+    assert target == 106.0
+    # 10% stop and 1% risk -> 10% of the account.
+    assert plan.position_pct(100.0, 90.0, CFG) == pytest.approx(10.0)
+    assert plan.position_pct(100.0, 99.0, CFG) == CFG["trading"]["max_position_pct"]
+
+
+def test_summarize_verdicts():
+    rng = np.random.default_rng(0)
+    n = 400
+    trades = pd.DataFrame({"ti": np.arange(n), "aj": 0, "ret": 0.02 + rng.normal(0, 0.01, n),
+                           "mkt": 0.0, "exit_day": np.arange(n) + 1,
+                           "exit_reason": ["target"] * n})
+    s = plan.summarize(trades, 5, CFG)
+    assert s["verdict"] == "edge" and s["win_rate"] > 0.9
+    trades["ret"] = -0.01 + rng.normal(0, 0.01, n)
+    assert plan.summarize(trades, 5, CFG)["verdict"] == "losing"
+    assert plan.summarize(trades.head(5), 5, CFG)["verdict"] == "too_few"
 
 
 def test_backtest_runs_all_strategies():
     report = backtest.run(random_panel(n_days=320, n_assets=80), CFG)
     assert set(report["strategies"]) == {"oversold_bounce", "connors_rsi2", "ibs_reversion", "trend_breakout", "momentum"}
-    assert "Connors" in backtest.format_report(report)
+    text = backtest.format_report(report)
+    assert "Connors" in text and "take-profit" in text
+    for e in report["strategies"].values():
+        assert e["headline"]["verdict"] in backtest.VERDICT_TEXT
 
 
 # ---------- stock data ----------
@@ -274,7 +330,7 @@ def test_review_candidates_excludes_severe(monkeypatch):
                     "filings": [], "insider_buys": 0, "insider_buy_usd": 0, "insider_sells": 0, "insider_sell_usd": 0}
 
     class FakeNews:
-        def review(self, q, limit):
+        def review(self, q, limit, must_mention=()):
             return {"headlines": [], "news_severe": [], "news_warnings": []}
 
     monkeypatch.setattr(checks, "SecChecks", FakeSec)
@@ -310,6 +366,8 @@ def test_scan_candidates_and_pick():
     cands = scan.candidates(p, CFG, report)
     ob = [c for c in cands if c["strategy"] == "oversold_bounce"]
     assert ob and ob[0]["id"] == "A0" and ob[0]["backtest"] is not None
+    assert ob[0]["stop"] < ob[0]["entry"] < ob[0]["target"]
+    assert "Fell" in ob[0]["reason"] and "rebound" in ob[0]["strategy_text"]
     ob[0]["llm"] = {"verdict": "structural"}
     picks = scan.pick(cands, CFG)
     assert "A0" not in [c["id"] for c in picks.get("oversold_bounce", [])]
@@ -319,22 +377,35 @@ def test_ledger_roundtrip_and_scorecard(tmp_path, monkeypatch):
     monkeypatch.setenv("SCANNER_LEDGER", str(tmp_path))
     p = random_panel(n_days=60, n_assets=5)
     p.close["A0"] = np.linspace(10, 20, 60)
+    p.high["A0"], p.low["A0"] = p.close["A0"], p.close["A0"]
     d = p.close.index[30]
-    pick = {"as_of": d, "strategy": "oversold_bounce", "id": "A0", "symbol": "A0", "price": 1.0, "score": 1.0}
-    ledger.append("stocks", {"oversold_bounce": [pick]})
-    ledger.append("stocks", {"oversold_bounce": [pick]})
-    assert len(pd.read_csv(tmp_path / "stocks.csv")) == 1
-    card = ledger.scorecard("stocks", p, CFG)
-    assert "n=1" in card and "+" in card
+    entry = float(p.close["A0"].iloc[30])
+    pick = {"as_of": d, "strategy": "trend_breakout", "id": "A0", "symbol": "A0",
+            "entry": entry, "stop": entry * 0.9, "target": entry * 1.05, "hold": 20}
+    ledger.append("crypto", {"trend_breakout": [pick]})
+    ledger.append("crypto", {"trend_breakout": [pick]})
+    assert len(pd.read_csv(tmp_path / "crypto.csv")) == 1
+    card = ledger.scorecard("crypto", p, CFG)
+    assert "1 of 1 alerts have finished" in card and "1 take profit" in card and "Trend breakout" in card
 
 
 def test_alert_format_and_chunking():
-    pick = {"strategy": "connors_rsi2", "strategy_label": "Connors RSI(2) pullback", "hold": 5, "symbol": "AAA",
-            "name": "Alpha", "price": 12.5, "market_cap": 2.3e9, "change_1d_pct": -3.0, "change_5d_pct": -6.0,
+    pick = {"strategy": "connors_rsi2", "strategy_label": "Connors RSI(2) pullback",
+            "strategy_text": "Buys a short dip.", "reason": "Dropped 4% over 3 days.", "hold": 5,
+            "symbol": "AAA", "name": "Alpha", "price": 50.0, "entry": 50.0, "stop": 45.0, "target": 53.0,
+            "position_pct": 10.0, "market_cap": 2.3e9, "change_1d_pct": -3.0, "change_5d_pct": -6.0,
             "change_20d_pct": 4.0, "rsi14": 38, "flags": ["insider buying: 2 trades, $250,000"],
             "headlines": [{"title": "Alpha dips on rate fears", "date": "10-08"}],
-            "backtest": {"n": 812, "avg_ret": 0.011, "win_rate": 0.58, "avg_excess": 0.006, "t_excess": 2.4}}
-    text = alerts.format_alert("stocks", {"connors_rsi2": [pick]}, True, datetime(2026, 10, 8, 22, 40))
-    assert "Connors" in text and "t=2.4" in text and "$2.3B" in text and "insider buying" in text
+            "backtest": {"n": 812, "win_rate": 0.58, "avg_ret": 0.011, "avg_win": 0.04, "avg_loss": -0.03,
+                         "excess": 0.006, "t": 2.4, "verdict": "edge"}}
+    when = datetime(2026, 10, 9, 3, 49, tzinfo=timezone.utc)
+    text = alerts.format_alert("stocks", {"connors_rsi2": [pick]}, True, when, CFG, months=23, as_of="2026-10-08",
+                               held_back=["Momentum leaders"])
+    assert "Prices are from the Oct 8 daily close" in text and "lost money in testing: Momentum leaders" in text
+    assert "Below 1 is normal" in text
+    assert "Thursday, Oct 8, 2026, 11:49 PM New York time" in text
+    assert "limit order at $50.00" in text and "stop sell at $45.00 (-10.0%)" in text
+    assert "limit sell at $53.00 (+6.0%)" in text and "0.6 to 1" in text
+    assert "$100 of a $1,000 account" in text and "BEAT THE MARKET" in text and "HOW TO PLACE" in text
     parts = alerts.chunks("\n\n".join(["x" * 900] * 5), 1900)
     assert all(len(p) <= 1900 for p in parts) and len(parts) == 3

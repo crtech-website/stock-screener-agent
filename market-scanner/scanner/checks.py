@@ -126,11 +126,36 @@ class NewsChecks:
         items.sort(key=lambda x: x[0], reverse=True)
         return [{"title": t, "date": w.strftime("%m-%d")} for w, t in items[:limit]]
 
-    def review(self, query, limit):
-        heads = self.headlines(query, limit=limit)
+    def review(self, query, limit, must_mention=()):
+        heads = self.headlines(query, limit=limit * 4)
+        if must_mention:
+            heads = [h for h in heads if mentions(h["title"], must_mention)]
+        heads = heads[:limit]
         severe = [h["title"] for h in heads if SEVERE_NEWS.search(h["title"])]
         warn = [h["title"] for h in heads if WARN_NEWS.search(h["title"]) and h["title"] not in severe]
         return {"headlines": heads, "news_severe": severe, "news_warnings": warn}
+
+
+def mentions(title, terms):
+    """True if the headline itself (not the outlet name after ' - ') names the asset.
+
+    Searches for a coin or company often return the exchange's own help pages or articles
+    about something else entirely, which would otherwise show up as 'latest news'.
+    """
+    body = title.rsplit(" - ", 1)[0]
+    for term in terms:
+        if not term or len(term) < 2:
+            continue
+        # Tickers are matched case-sensitively so "ON" or "ALL" don't match ordinary words.
+        flags = 0 if term.isupper() and len(term) <= 5 else re.I
+        if re.search(rf"(?<![A-Za-z0-9]){re.escape(term)}(?![A-Za-z0-9])", body, flags):
+            return True
+    return False
+
+
+def name_word(name):
+    words = [w for w in re.split(r"[\s,.]+", name or "") if w]
+    return words[0] if words and len(words[0]) >= 3 else None
 
 
 class TvlIndex:
@@ -202,7 +227,7 @@ def _facts(c, sec, news, tvl, ck):
             f["tvl"] = t
             if t["tvl_change_7d_pct"] <= -25:
                 f["flags"].append(f"TVL down {t['tvl_change_7d_pct']:.0f}% in 7d")
-    n = news.review(query, ck["news_headlines"])
+    n = news.review(query, ck["news_headlines"], must_mention=(c["symbol"], name_word(c.get("name_only"))))
     f.update(n)
     f["flags"] += [f"news: {h}" for h in n["news_warnings"][:2]]
     f["flags"] += [f"NEWS RED FLAG: {h}" for h in n["news_severe"][:2]]

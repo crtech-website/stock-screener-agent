@@ -116,3 +116,56 @@ def signals(strat, prm, panel, use_regime=None):
     if prm["regime"] if use_regime is None else use_regime:
         sig = sig.mul(panel.regime, axis=0).astype(bool)
     return sig, score
+
+
+def _days(n):
+    return {252: "52 weeks (1 year)", 55: "55 days", 90: "90 days", 21: "month", 7: "week"}.get(n, f"{n} days")
+
+
+def describe(name, market, prm):
+    """What the strategy does, for someone who has never traded."""
+    thing = "stock" if market == "stocks" else "coin"
+    if name == "oversold_bounce":
+        return (f"Buys a {thing} right after a sharp, fast drop, betting on a quick rebound. "
+                "This style usually wins more often than it loses, but each win is small.")
+    if name == "connors_rsi2":
+        return (f"Buys a short dip in a {thing} that has been rising for months, betting the dip is temporary "
+                "and the price bounces back within days. From trader Larry Connors.")
+    if name == "ibs_reversion":
+        return ("Buys a stock that is in an uptrend but closed near the low of the day, betting on a "
+                "bounce over the next few days.")
+    if name == "trend_breakout":
+        return (f"Buys a {thing} that is already rising and just hit its highest price in {_days(prm['high_window'])} "
+                "with heavy buying. The bet is that strength keeps going. It wins less often, "
+                "but the wins are meant to be about twice the size of the losses.")
+    if name == "momentum":
+        period = "year" if prm["lookback"] >= 250 else f"{prm['lookback']} days"
+        return (f"Buys the biggest winners of the past {period}. Things that have been going up "
+                f"tend to keep going up for a while. The list is refreshed every {_days(prm['hold'])}.")
+    return ""
+
+
+def explain(name, panel, prm, asset, score):
+    """Why this asset was picked today, in plain words."""
+    c = panel.close[asset]
+    if name == "oversold_bounce":
+        drop = (c.iloc[-1] / c.iloc[-1 - prm["drop_bars"]] - 1) * 100
+        return (f"Fell {abs(drop):.0f}% in the last {prm['drop_bars']} days. Its RSI is "
+                f"{rsi(c, 14).iloc[-1]:.0f} out of 100; under 30 means it has been sold very hard.")
+    if name == "connors_rsi2":
+        move = (c.iloc[-1] / c.iloc[-4] - 1) * 100
+        return (f"Still in a long-term uptrend (above its 200-day average), but "
+                f"{'dropped' if move < 0 else 'moved'} {abs(move):.1f}% over the last 3 days. "
+                f"Its short-term RSI is {rsi(c, 2).iloc[-1]:.0f} out of 100, which is extremely low.")
+    if name == "ibs_reversion":
+        v = ibs(panel.high[asset], panel.low[asset], c).iloc[-1]
+        return (f"In an uptrend, but closed in the bottom {v * 100:.0f}% of today's price range, "
+                "a sign of a short-term overreaction.")
+    if name == "trend_breakout":
+        return (f"Hit its highest price in {_days(prm['high_window'])} today, on {score:.1f}x its normal "
+                "trading volume, and its moving averages all point up.")
+    if name == "momentum":
+        ret = (c.iloc[-1 - prm["skip"]] / c.iloc[-1 - prm["lookback"]] - 1) * 100
+        return (f"One of the strongest performers: up {ret:.0f}% over the past {prm['lookback']} days "
+                f"(not counting the last {prm['skip']}), and still above its 50-day average.")
+    return ""

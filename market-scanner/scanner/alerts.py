@@ -1,9 +1,33 @@
 import logging
 import os
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 import requests
 
 log = logging.getLogger(__name__)
+
+NY = ZoneInfo("America/New_York")
+RULE = "-" * 34
+
+VERDICT_LINE = {
+    "edge": "Verdict: BEAT THE MARKET in testing. Past results are no guarantee.",
+    "unproven": "Verdict: NOT PROVEN. The results could be luck. Use small amounts or practice on paper.",
+    "losing": "Verdict: LOST MONEY in testing. Consider skipping these picks.",
+    "too_few": "Verdict: NOT ENOUGH HISTORY yet to judge this strategy.",
+}
+
+GLOSSARY = """HOW TO PLACE THE ORDERS
+- Limit buy: you only buy at your price or lower.
+- Take profit: a limit sell. It sells automatically once the price rises to your target.
+- Stop loss: a stop order. It sells automatically if the price falls to your stop, so a bad trade can't keep losing.
+- Most brokers let you set the take profit and stop loss together, called a bracket or OCO order (one cancels the other).
+- A stop loss can fill below your price if the price jumps down overnight.
+Automated screen, not investment advice."""
+
+
+def ny_time(when):
+    return when.astimezone(NY).strftime("%A, %b %-d, %Y, %-I:%M %p") + " New York time"
 
 
 def fmt_money(x):
@@ -16,39 +40,86 @@ def fmt_money(x):
 
 
 def fmt_price(x):
-    return f"${x:,.2f}" if x >= 1 else f"${x:.6g}"
+    if x >= 1000:
+        return f"${x:,.0f}"
+    if x >= 1:
+        return f"${x:,.2f}"
+    return f"${x:.4g}"
 
 
-def backtest_line(bt, hold):
+def track_record(bt, hold, months):
     if not bt or not bt.get("n"):
-        return "   Backtest: not enough history yet"
-    return (f"   Backtest ({hold}-bar hold): avg {bt['avg_ret']:+.1%}, win {bt['win_rate']:.0%}, "
-            f"vs market {bt['avg_excess']:+.1%} (t={bt['t_excess']:.1f}, n={bt['n']})")
+        return ["Track record: not enough history yet."]
+    period = f"the last {months} months" if months else "the available history"
+    return [
+        f"Track record over {period}, using this exact plan ({bt['n']} past trades):",
+        f"  Won {bt['win_rate']:.0%} of trades. Average win {bt['avg_win']:+.1%}, average loss {bt['avg_loss']:+.1%}.",
+        f"  Average per trade: {bt['avg_ret']:+.1%}. Compared with buying the whole market instead: {bt['excess']:+.1%}.",
+        f"  {VERDICT_LINE[bt['verdict']]}",
+    ]
 
 
-def format_alert(market, picks_by_strategy, regime_on, when):
-    head = [f"{market.upper()} scan {when:%Y-%m-%d %H:%M} UTC",
-            f"Market regime: {'benchmark above 200-day avg' if regime_on else 'benchmark BELOW 200-day avg'}"]
+def trade_plan(p, cfg):
+    entry, stop, target = p["entry"], p["stop"], p["target"]
+    stop_pct = (stop / entry - 1) * 100
+    target_pct = (target / entry - 1) * 100
+    rr = target_pct / -stop_pct if stop_pct < 0 else 0
+    example = cfg["trading"]["example_account"]
+    pos = p["position_pct"]
+    return [
+        "The plan:",
+        f"  1. Buy: limit order at {fmt_price(entry)}. If it hasn't filled by the next close, cancel it.",
+        f"  2. Take profit: limit sell at {fmt_price(target)} ({target_pct:+.1f}%).",
+        f"  3. Stop loss: stop sell at {fmt_price(stop)} ({stop_pct:+.1f}%).",
+        f"  4. Time limit: if neither is hit within {p['hold']} days, sell at the market.",
+        f"  Possible gain vs possible loss: {rr:.1f} to 1."
+        + (" Below 1 is normal for dip-buying strategies, which aim to win often." if rr < 1 else ""),
+        f"  Size: put at most {pos:.0f}% of your account in this trade "
+        f"(${example * pos / 100:,.0f} of a ${example:,} account). If the stop hits, you lose about "
+        f"{cfg['trading']['risk_per_trade_pct']}% of the account.",
+    ]
+
+
+def format_pick(p, cfg):
+    name = f" ({p['name']})" if p.get("name") and p["name"] != p["symbol"] else ""
+    lines = [f">> {p['symbol']}{name}, last price {fmt_price(p['price'])}, market value {fmt_money(p.get('market_cap'))}",
+             f"Why it was picked: {p['reason']}",
+             f"Recent moves: {p['change_1d_pct']:+.1f}% today, {p['change_5d_pct']:+.1f}% this week, "
+             f"{p['change_20d_pct']:+.1f}% this month."]
+    lines += trade_plan(p, cfg)
+    if p.get("flags"):
+        lines.append("Warnings: " + " | ".join(p["flags"][:4]))
+    if p.get("llm"):
+        lines.append(f"AI read: {p['llm'].get('summary', '')} ({p['llm'].get('verdict')})")
+    if p.get("headlines"):
+        h = p["headlines"][0]
+        lines.append(f"Latest news ({h['date']}): {h['title']}")
+    return "\n".join(lines)
+
+
+def format_alert(market, picks_by_strategy, regime_on, when, cfg, months=None, as_of=None, held_back=()):
+    bench = "The S&P 500 (SPY)" if market == "stocks" else "Bitcoin"
+    mood = (f"{bench} is above its 200-day average, so the overall market is in an uptrend."
+            if regime_on else
+            f"{bench} is below its 200-day average, so the market is weak. "
+            "Trend strategies are paused; be extra careful with the rest.")
+    head = [f"{'STOCK' if market == 'stocks' else 'CRYPTO'} SCAN",
+            ny_time(when),
+            f"Prices are from the {datetime.strptime(as_of, '%Y-%m-%d'):%b %-d} daily close." if as_of else "",
+            f"Market mood: {mood}",
+            f"Not shown because they lost money in testing: {', '.join(held_back)}." if held_back else ""]
     sections = []
     for picks in picks_by_strategy.values():
         if not picks:
             continue
         first = picks[0]
-        lines = [f"== {first['strategy_label']} ==", backtest_line(first.get("backtest"), first["hold"])]
-        for p in picks:
-            name = f" {p['name']}" if p.get("name") else ""
-            lines.append(f"{p['symbol']}{name}  {fmt_price(p['price'])}  mcap {fmt_money(p.get('market_cap'))}")
-            lines.append(f"   1d {p['change_1d_pct']:+.1f}%  5d {p['change_5d_pct']:+.1f}%  "
-                         f"20d {p['change_20d_pct']:+.1f}%  RSI14 {p['rsi14']:.0f}")
-            for flag in p.get("flags", [])[:4]:
-                lines.append(f"   ! {flag}")
-            if p.get("llm"):
-                lines.append(f"   AI: {p['llm'].get('verdict')} ({p['llm'].get('confidence')}/10) {p['llm'].get('summary', '')}")
-            elif p.get("headlines"):
-                lines.append(f"   Latest: {p['headlines'][0]['title']}")
-        sections.append("\n".join(lines))
-    body = "\n\n".join(sections) if sections else "No signals passed the filters today."
-    return "\n".join(head) + "\n\n" + body + "\n\nAutomated screen output, not investment advice."
+        block = [RULE, f"STRATEGY: {first['strategy_label']}", f"What it does: {first['strategy_text']}"]
+        block += track_record(first.get("backtest"), first["hold"], months)
+        sections.append("\n".join(block))
+        sections += [format_pick(p, cfg) for p in picks]
+    if not sections:
+        sections = ["No trade ideas passed the filters today."]
+    return "\n".join(x for x in head if x) + "\n\n" + "\n\n".join(sections) + f"\n\n{RULE}\n" + GLOSSARY
 
 
 def chunks(text, limit):

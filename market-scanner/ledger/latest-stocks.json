@@ -1,18 +1,17 @@
 {
  "market": "stocks",
- "generated_utc": "2026-10-09T15:45:47Z",
- "generated_new_york": "Friday, Oct 9, 2026, 11:45 AM New York time",
+ "generated_utc": "2026-10-09T16:24:25Z",
+ "generated_new_york": "Friday, Oct 9, 2026, 12:24 PM New York time",
  "as_of": "2026-10-08",
  "prices_from": "the Oct 8 market close (4:00 PM New York time)",
  "market_mood": "S&P 500 (SPY) is above its 200-day average: the overall market is in an uptrend.",
  "held_back": [
-  "Oversold bounce"
+  "Oversold bounce",
+  "IBS reversion"
  ],
  "loading": [
-  "Connors RSI(2) pullback (has 115 of 210 days)",
-  "IBS reversion (has 115 of 210 days)",
-  "Trend breakout (has 115 of 252 days)",
-  "Momentum leaders (has 115 of 253 days)"
+  "Trend breakout (has 228 of 252 days)",
+  "Momentum leaders (has 228 of 253 days)"
  ],
  "risk_per_trade_pct": 1,
  "strategies": {
@@ -21,13 +20,113 @@
    "hold_days": 5,
    "market_filter": false,
    "verdict": "losing",
-   "past_trades": 571,
-   "win_rate_pct": 45.01,
-   "avg_win_pct": 13.65,
-   "avg_loss_pct": -12.56,
-   "avg_per_trade_pct": -0.76,
-   "market_same_days_pct": 0.27
+   "past_trades": 1477,
+   "win_rate_pct": 42.52,
+   "avg_win_pct": 12.61,
+   "avg_loss_pct": -14.17,
+   "avg_per_trade_pct": -2.78,
+   "market_same_days_pct": 0.08
+  },
+  "connors_rsi2": {
+   "label": "Connors RSI(2) pullback",
+   "hold_days": 5,
+   "market_filter": false,
+   "verdict": "unproven",
+   "past_trades": 2626,
+   "win_rate_pct": 59.56,
+   "avg_win_pct": 2.65,
+   "avg_loss_pct": -3.8,
+   "avg_per_trade_pct": 0.04,
+   "market_same_days_pct": -0.65
+  },
+  "ibs_reversion": {
+   "label": "IBS reversion",
+   "hold_days": 3,
+   "market_filter": false,
+   "verdict": "losing",
+   "past_trades": 5877,
+   "win_rate_pct": 46.32,
+   "avg_win_pct": 2.62,
+   "avg_loss_pct": -3.09,
+   "avg_per_trade_pct": -0.44,
+   "market_same_days_pct": -0.58
   }
  },
- "picks": []
+ "picks": [
+  {
+   "strategy": "connors_rsi2",
+   "strategy_label": "Connors RSI(2) pullback",
+   "what_it_does": "Buys a short dip in a stock that has been rising for months, betting the dip is temporary and the price bounces back within days. From trader Larry Connors.",
+   "why_picked": "Still in a long-term uptrend (above its 200-day average), but dropped 8.0% over the last 3 days. Its short-term RSI is under 1 out of 100, which is extremely low.",
+   "verdict": "unproven",
+   "symbol": "BBNX",
+   "id": "BBNX",
+   "name": "Beta Bionics, Inc. Common Stock",
+   "market_cap": 940282457.73,
+   "change_1d_pct": -3.6,
+   "change_5d_pct": -7.6,
+   "change_20d_pct": 5.1,
+   "as_of": "2026-10-08",
+   "close": 17.43000031,
+   "limit_buy": 17.43871531,
+   "stop": 14.29220813,
+   "target": 18.40999985,
+   "hold_days": 5,
+   "position_pct": 5.5,
+   "warnings": [
+    "dilution: 424B5 2026-09-17",
+    "dilution: 424B5 2026-09-16",
+    "NEWS RED FLAG: BBNX Stock Notice: Beta Bionics Stock Plummeted 37% after Medical Device Safety Issues Disclosed - Securities Fraud Class Action Filed - PR Newswire"
+   ],
+   "latest_headline": "Beta Bionics (BBNX) Stock Fair Value Rises After Mint Clearance And Analyst Target Changes - Yahoo Finance"
+  },
+  {
+   "strategy": "connors_rsi2",
+   "strategy_label": "Connors RSI(2) pullback",
+   "what_it_does": "Buys a short dip in a stock that has been rising for months, betting the dip is temporary and the price bounces back within days. From trader Larry Connors.",
+   "why_picked": "Still in a long-term uptrend (above its 200-day average), but dropped 6.4% over the last 3 days. Its short-term RSI is under 1 out of 100, which is extremely low.",
+   "verdict": "unproven",
+   "symbol": "DNTH",
+   "id": "DNTH",
+   "name": "Dianthus Therapeutics, Inc. Common Stock",
+   "market_cap": 4610670778.54,
+   "change_1d_pct": -2.9,
+   "change_5d_pct": -6.7,
+   "change_20d_pct": -20.2,
+   "as_of": "2026-10-08",
+   "close": 82.43000031,
+   "limit_buy": 82.47121531,
+   "stop": 71.29568921,
+   "target": 85.79199982,
+   "hold_days": 5,
+   "position_pct": 7.4,
+   "warnings": [
+    "dilution: S-3ASR 2026-09-18"
+   ],
+   "latest_headline": "Dianthus Therapeutics, Inc. (NASDAQ:DNTH) Stock Has Consensus Target Price of $129.83 - MarketBeat"
+  },
+  {
+   "strategy": "connors_rsi2",
+   "strategy_label": "Connors RSI(2) pullback",
+   "what_it_does": "Buys a short dip in a stock that has been rising for months, betting the dip is temporary and the price bounces back within days. From trader Larry Connors.",
+   "why_picked": "Still in a long-term uptrend (above its 200-day average), but dropped 8.6% over the last 3 days. Its short-term RSI is 1 out of 100, which is extremely low.",
+   "verdict": "unproven",
+   "symbol": "PESI",
+   "id": "PESI",
+   "name": "Perma-Fix Environmental Services, Inc.",
+   "market_cap": 300451850.16,
+   "change_1d_pct": -6.1,
+   "change_5d_pct": -8.1,
+   "change_20d_pct": -22.4,
+   "as_of": "2026-10-08",
+   "close": 14.15999985,
+   "limit_buy": 14.16707985,
+   "stop": 12.13959491,
+   "target": 15.15200005,
+   "hold_days": 5,
+   "position_pct": 7.0,
+   "warnings": [],
+   "latest_headline": "IDN,PFX,BW,MATV,LIEN,WWD,CMRA,FRD,NVCT,PESI,CRGY | Stock Prices | Quote Comparison - Yahoo! Finance Canada"
+  }
+ ]
 }

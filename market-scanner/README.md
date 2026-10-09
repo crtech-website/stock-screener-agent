@@ -54,6 +54,16 @@ Strategies whose plan lost money in the backtest are held back from alerts (`ski
 
 Backtest limits to know: crypto data has daily closes only, so stops are checked against closes. A real stop order can be triggered by an intraday dip that recovers by the close, so live crypto stop-outs will happen somewhat more often than the backtest shows. When a day touches both the stop and the target, the backtest assumes the stop hit first.
 
+## Robinhood
+
+The scanner is set up for trading on Robinhood:
+
+- **Costs:** the backtest charges what Robinhood really costs. That's about 1.9% per crypto round trip, because Robinhood buys about 0.95% above the market price and sells about 0.95% below it, measured Oct 9, 2026. Stocks are charged 0.1%.
+- **Coins:** crypto is limited to the 92 coins in `robinhood_crypto.txt`. Edit that file when Robinhood adds or removes a coin, or delete it to scan everything.
+- **Buy price:** the buy limit is set about 1% above the close for crypto, so the order can actually fill at Robinhood's buy price.
+- **Picks file:** each scan saves tonight's picks to `ledger/latest-crypto.json` and `ledger/latest-stocks.json`.
+- **Nightly Robinhood check (9:18 PM New York time):** a Claude scheduled task reads those files and checks each pick against live Robinhood prices. It skips picks that aren't on Robinhood, whose price has already run more than 2% past the buy price, that are already below the stop, or whose buy/sell gap is too wide. For the rest, it adds them to a Robinhood watchlist called "Scanner picks" and sets price alerts at the stop and take-profit. It never places orders.
+
 ## Setup
 
 1. Push this folder to a GitHub repo. A public repo gets unlimited Actions minutes; a private one gets 2,000 a month, about 10x what this uses. Note that the `ledger/` folder of picks is visible in a public repo.

@@ -12,7 +12,9 @@ stocks:
   min_avg_dollar_volume: 5_000_000     # 20-day average of close * volume
   min_market_cap: 50_000_000           # checked only for final candidates
   benchmark: SPY
-  cost_bps: 20                         # round-trip cost assumed in backtests
+  # Robinhood: no commission; liquid stocks trade at a gap of a cent or two between buy and sell.
+  cost_bps: 10                         # round-trip cost assumed in backtests
+  half_spread_pct: 0.05                # buy limit is set this far above the close
 
 crypto:
   calls_per_minute: 30
@@ -21,7 +23,11 @@ crypto:
   min_market_cap: 50_000_000
   min_volume_24h: 5_000_000
   benchmark: bitcoin
-  cost_bps: 40
+  only_symbols_file: robinhood_crypto.txt   # only scan coins your platform sells
+  # Robinhood crypto: you buy about 0.95% above the middle price and sell about 0.95% below it
+  # (measured Oct 9, 2026 on BTC, ETH, SOL, DOGE, UNI, LINK, STRK, RAY and W).
+  cost_bps: 190
+  half_spread_pct: 0.95
 
 # Each strategy can override any setting per market under a `stocks:` or `crypto:` key.
 # regime: true = only fires while the benchmark is above its 200-day average.

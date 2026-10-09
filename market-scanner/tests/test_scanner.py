@@ -385,6 +385,20 @@ def test_ledger_roundtrip_and_scorecard(tmp_path, monkeypatch):
     ledger.append("crypto", {"trend_breakout": [pick]})
     ledger.append("crypto", {"trend_breakout": [pick]})
     assert len(pd.read_csv(tmp_path / "crypto.csv")) == 1
+    report = {"end": d, "strategies": {"trend_breakout": {
+        "label": "Trend breakout", "hold": 20, "regime": True,
+        "headline": {"verdict": "unproven", "n": 40, "win_rate": 0.5, "avg_win": 0.1, "avg_loss": -0.08,
+                     "avg_ret": 0.01, "avg_mkt": 0.005}}}}
+    ledger.write_latest("crypto", {"trend_breakout": [{**pick, "strategy_label": "Trend breakout", "price": entry,
+                                                      "position_pct": 9.0, "backtest": {"verdict": "unproven"},
+                                                      "strategy_text": "Buys strength.", "reason": "New high."}]},
+                        report, datetime(2026, 10, 9, 1, 0, tzinfo=timezone.utc), CFG, True, held_back=["Momentum leaders"])
+    latest = json.loads((tmp_path / "latest-crypto.json").read_text())
+    pk = latest["picks"][0]
+    assert pk["limit_buy"] == round(entry, 8) and pk["hold_days"] == 20 and pk["why_picked"] == "New high."
+    assert latest["strategies"]["trend_breakout"]["win_rate_pct"] == 50.0
+    assert latest["held_back"] == ["Momentum leaders"] and "New York time" in latest["generated_new_york"]
+    assert "uptrend" in latest["market_mood"]
     card = ledger.scorecard("crypto", p, CFG)
     assert "1 of 1 alerts have finished" in card and "1 take profit" in card and "Trend breakout" in card
 
@@ -401,7 +415,7 @@ def test_alert_format_and_chunking():
     when = datetime(2026, 10, 9, 3, 49, tzinfo=timezone.utc)
     text = alerts.format_alert("stocks", {"connors_rsi2": [pick]}, True, when, CFG, months=23, as_of="2026-10-08",
                                held_back=["Momentum leaders"])
-    assert "Prices are from the Oct 8 daily close" in text and "lost money in testing: Momentum leaders" in text
+    assert "Oct 8 market close (4:00 PM New York time)" in text and "in testing: Momentum leaders" in text
     assert "Below 1 is normal" in text
     assert "Thursday, Oct 8, 2026, 11:49 PM New York time" in text
     assert "limit order at $50.00" in text and "stop sell at $45.00 (-10.0%)" in text
@@ -409,3 +423,74 @@ def test_alert_format_and_chunking():
     assert "$100 of a $1,000 account" in text and "BEAT THE MARKET" in text and "HOW TO PLACE" in text
     parts = alerts.chunks("\n\n".join(["x" * 900] * 5), 1900)
     assert all(len(p) <= 1900 for p in parts) and len(parts) == 3
+
+
+def test_crypto_alert_close_time_live_price_and_combined_risk():
+    base = {"strategy": "trend_breakout", "strategy_label": "Trend breakout", "strategy_text": "x", "reason": "y",
+            "hold": 20, "name": "Starknet", "price": 0.0679, "entry": 0.0679, "stop": 0.0607, "target": 0.0824,
+            "position_pct": 9.0, "market_cap": 5e8, "change_1d_pct": 22.0, "change_5d_pct": 15.0,
+            "change_20d_pct": 52.0, "rsi14": 70, "backtest": None}
+    a = {**base, "symbol": "STRK", "live_price": 0.0720}
+    b = {**base, "symbol": "RAY", "live_price": None}
+    when = datetime(2026, 10, 9, 4, 28, tzinfo=timezone.utc)
+    text = alerts.format_alert("crypto", {"trend_breakout": [a, b]}, True, when, CFG, as_of="2026-10-08")
+    assert "Oct 8 daily close (Oct 8, 8:00 PM New York time)" in text
+    assert "Price now: $0.072 (+6.0% since the close)" in text and "Don't chase it" in text
+    assert "about 2% of your account is at risk at once" in text
+
+
+def test_crypto_panel_uses_only_completed_days(monkeypatch):
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    days = list(pd.date_range(end=pd.Timestamp(today), periods=5).strftime("%Y-%m-%d"))
+    hist = pd.DataFrame({"date": days, "id": "bitcoin", "close": [1.0, 2, 3, 4, 99],
+                         "market_cap": 1e12, "volume": 1e10})
+    meta = {"bitcoin": {"symbol": "BTC", "name": "Bitcoin"}, "_live": {"prices": {"bitcoin": 99.0}, "at": "x"}}
+    p = data_crypto.build_panel(hist, meta, CFG)
+    assert p.last_date == days[-2] and p.close["bitcoin"].iloc[-1] == 4.0 and p.live["bitcoin"] == 99.0
+
+
+def test_market_returns_is_buy_and_hold_and_trimmed():
+    dates = [f"2026-01-{d:02d}" for d in range(1, 6)]
+    cols = [f"A{i}" for i in range(50)]
+    close = pd.DataFrame(10.0, index=dates, columns=cols)
+    close.iloc[2:, :] = 11.0           # everything +10% from day 2
+    close.iloc[4, 0] = 10_000.0        # one bad print
+    p = Panel("crypto", close, close, close.notna(), pd.Series(dtype=float))
+    r = plan.market_returns(p, np.array([0, 0, 0]), np.array([1, 4, 1]))
+    assert r[0] == pytest.approx(0.0) and r[1] == pytest.approx(0.10, rel=0.05) and r[2] == pytest.approx(0.0)
+
+
+def test_lagging_verdict():
+    rng = np.random.default_rng(1)
+    n = 400
+    trades = pd.DataFrame({"ti": np.arange(n), "aj": 0, "ret": 0.01 + rng.normal(0, 0.01, n),
+                           "mkt": 0.05, "exit_day": np.arange(n) + 1, "exit_reason": ["time"] * n})
+    s = plan.summarize(trades, 5, CFG)
+    assert s["verdict"] == "lagging" and s["excess"] == pytest.approx(s["avg_ret"] - s["avg_mkt"])
+
+
+def test_crypto_panel_drops_pegged_tokens_and_bad_prints():
+    days = pd.date_range("2026-01-01", periods=60).strftime("%Y-%m-%d")
+    rng = np.random.default_rng(2)
+    real = 10 * np.exp(rng.normal(0, 0.03, 60).cumsum())
+    real[30] = real[29] * 0.2            # one-day bad print
+    pegged = 1 + rng.normal(0, 0.001, 60)
+    hist = pd.concat([pd.DataFrame({"date": days, "id": "realcoin", "close": real}),
+                      pd.DataFrame({"date": days, "id": "loan-token", "close": pegged})]).assign(
+        market_cap=1e9, volume=1e8)
+    meta = {"realcoin": {"symbol": "REAL", "name": "Real"}, "loan-token": {"symbol": "LOAN", "name": "Loan"}}
+    cfg = {**CFG, "crypto": {**CFG["crypto"], "only_symbols_file": None}}
+    p = data_crypto.build_panel(hist, meta, cfg)
+    assert list(p.close.columns) == ["realcoin"] and np.isnan(p.close["realcoin"].iloc[30])
+
+
+def test_crypto_universe_limited_to_platform_coins(tmp_path):
+    f = tmp_path / "coins.txt"
+    f.write_text("# comment\nSTRK\nBTC\n")
+    cfg = {**CFG, "crypto": {**CFG["crypto"], "only_symbols_file": str(f)}}
+    markets = pd.DataFrame({"id": ["starknet", "strike-fake", "bitcoin", "solana"],
+                            "symbol": ["strk", "strk", "btc", "sol"], "market_cap": [5e8, 1e7, 2e12, 5e10]})
+    kept = data_crypto.keep_venue_coins(markets, data_crypto.venue_symbols(cfg))
+    assert sorted(kept["id"]) == ["bitcoin", "starknet"]
+    assert data_crypto.venue_symbols({**CFG, "crypto": {**CFG["crypto"], "only_symbols_file": None}}) is None
+    assert "STRK" in data_crypto.venue_symbols(CFG) and len(data_crypto.venue_symbols(CFG)) == 92

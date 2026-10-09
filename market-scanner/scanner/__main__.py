@@ -48,6 +48,8 @@ def cmd_scan(args, cfg, out):
 
     if not args.no_ledger:
         ledger.append(args.market, picks)
+        ledger.write_latest(args.market, picks, report, now, cfg, bool(panel.regime.iloc[-1]),
+                            held_back=scan.held_back(report, cfg))
     if not args.no_alert and (any(picks.values()) or cfg["alerts"]["send_when_empty"]):
         alerts.send(text)
 

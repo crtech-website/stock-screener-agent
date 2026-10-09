@@ -7,20 +7,21 @@ VERDICT_TEXT = {
     "edge": "Beat the market in testing",
     "unproven": "Not proven: results could be luck",
     "losing": "Lost money in testing",
+    "lagging": "Did clearly worse than holding the market",
     "too_few": "Not enough past trades to judge",
 }
 
 
 def run(panel, cfg):
     arrays = plan.plan_arrays(panel, cfg)
-    mkt = plan.market_index(panel)
+    mkt_cache = {}
     report = {"market": panel.market, "start": panel.close.index[0], "end": panel.close.index[-1],
               "days": len(panel.close), "assets": int((panel.tradable.sum() >= 30).sum()), "strategies": {}}
     for strat, prm in active_strategies(cfg, panel):
         entry = {"label": strat.label, "hold": prm["hold"], "regime": prm["regime"], "variants": {}}
         for variant, use_regime in (("no_regime", False), ("with_regime", True)):
             sig, _ = signals(strat, prm, panel, use_regime=use_regime)
-            trades = plan.backtest_signals(panel, sig, prm, cfg, arrays=arrays, mkt=mkt)
+            trades = plan.backtest_signals(panel, sig, prm, cfg, arrays=arrays, mkt_cache=mkt_cache)
             entry["variants"][variant] = plan.summarize(trades, prm["hold"], cfg)
         entry["headline"] = entry["variants"]["with_regime" if prm["regime"] else "no_regime"]
         report["strategies"][strat.name] = entry

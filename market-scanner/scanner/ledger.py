@@ -53,7 +53,6 @@ def grade(market, panel, cfg):
     col = {a: j for j, a in enumerate(panel.close.columns)}
     led = led[led["as_of"].isin(pos) & led["id"].isin(col)]
     c, h, l, _ = plan.plan_arrays(panel, cfg)
-    mkt = plan.market_index(panel)
     cost = cfg[market]["cost_bps"] / 10_000
     graded = []
     for hold, g in led.groupby("hold"):
@@ -62,7 +61,7 @@ def grade(market, panel, cfg):
         t = plan.simulate(c, h, l, ti, aj, g["stop"].to_numpy(float), g["target"].to_numpy(float), int(hold), cost)
         if t.empty:
             continue
-        t["mkt"] = mkt[t["exit_day"].to_numpy()] / mkt[t["ti"].to_numpy()] - 1
+        t["mkt"] = plan.market_returns(panel, t["ti"].to_numpy(), t["exit_day"].to_numpy())
         key = dict(zip(zip(ti, aj), g["strategy"]))
         t["strategy"] = [key[(a, b)] for a, b in zip(t["ti"], t["aj"])]
         graded.append(t)
@@ -90,3 +89,60 @@ def scorecard(market, panel, cfg):
     lines.append("")
     lines.append("Results assume you followed each plan exactly, after trading costs.")
     return "\n".join(lines)
+
+
+def write_latest(market, picks_by_strategy, report, when, cfg, regime_on, held_back=()):
+    """Tonight's full report in machine-readable form, read by the Claude agent that checks Robinhood.
+
+    It carries everything the Telegram alert shows, so the agent can give the complete
+    plain-English report together with live Robinhood prices.
+    """
+    import json
+
+    from .alerts import close_time, ny_time
+
+    def pct(x):
+        return None if x is None else round(x * 100, 2)
+
+    strategies = {}
+    for name, e in report["strategies"].items():
+        h = e["headline"]
+        strategies[name] = {"label": e["label"], "hold_days": e["hold"], "market_filter": e["regime"],
+                            "verdict": h.get("verdict"), "past_trades": h.get("n", 0),
+                            "win_rate_pct": pct(h.get("win_rate")), "avg_win_pct": pct(h.get("avg_win")),
+                            "avg_loss_pct": pct(h.get("avg_loss")), "avg_per_trade_pct": pct(h.get("avg_ret")),
+                            "market_same_days_pct": pct(h.get("avg_mkt"))}
+    picks = []
+    for group in picks_by_strategy.values():
+        for p in group:
+            picks.append({
+                "strategy": p["strategy"], "strategy_label": p["strategy_label"],
+                "what_it_does": p.get("strategy_text", ""), "why_picked": p.get("reason", ""),
+                "verdict": (p.get("backtest") or {}).get("verdict"),
+                "symbol": p["symbol"], "id": p["id"], "name": p.get("name", ""),
+                "market_cap": p.get("market_cap"),
+                "change_1d_pct": p.get("change_1d_pct"), "change_5d_pct": p.get("change_5d_pct"),
+                "change_20d_pct": p.get("change_20d_pct"),
+                "as_of": p["as_of"], "close": round(p["price"], 8), "limit_buy": round(p["entry"], 8),
+                "stop": round(p["stop"], 8), "target": round(p["target"], 8), "hold_days": int(p["hold"]),
+                "position_pct": round(p["position_pct"], 1),
+                "warnings": p.get("flags", [])[:4],
+                "latest_headline": (p.get("headlines") or [{}])[0].get("title"),
+            })
+    bench = "S&P 500 (SPY)" if market == "stocks" else "Bitcoin"
+    out = {
+        "market": market,
+        "generated_utc": when.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "generated_new_york": ny_time(when),
+        "as_of": report["end"],
+        "prices_from": close_time(market, report["end"]),
+        "market_mood": (f"{bench} is above its 200-day average: the overall market is in an uptrend." if regime_on
+                        else f"{bench} is below its 200-day average: the market is weak; trend strategies are paused."),
+        "held_back": list(held_back),
+        "risk_per_trade_pct": cfg["trading"]["risk_per_trade_pct"],
+        "strategies": strategies,
+        "picks": picks,
+    }
+    f = ledger_file(market).parent / f"latest-{market}.json"
+    f.parent.mkdir(parents=True, exist_ok=True)
+    f.write_text(json.dumps(out, indent=1, default=str))

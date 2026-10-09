@@ -9,6 +9,8 @@ from .strategies import active_strategies, describe, explain, signals
 
 log = logging.getLogger(__name__)
 
+HOLD_BACK = {"losing", "lagging"}
+
 
 def candidates(panel, cfg, report):
     """Today's signals from every active strategy, each with a full trade plan."""
@@ -27,7 +29,7 @@ def candidates(panel, cfg, report):
         if cfg["backtest"]["require_edge"] and not (entry and has_edge(entry)):
             log.info("%s skipped: backtest shows no edge", strat.name)
             continue
-        if cfg["alerts"]["skip_losing_strategies"] and entry and entry["headline"].get("verdict") == "losing":
+        if cfg["alerts"]["skip_losing_strategies"] and entry and entry["headline"].get("verdict") in HOLD_BACK:
             log.info("%s skipped: lost money in the backtest", strat.name)
             continue
         sig, score = signals(strat, prm, panel)
@@ -40,6 +42,8 @@ def candidates(panel, cfg, report):
             if not (np.isfinite(a) and a > 0):
                 continue
             stop, target = plan.levels(price, a, float(sma_now[asset]) if sma_now is not None else None, prm, cfg)
+            # You buy at the ask, above the market price; a limit at the bare close would rarely fill.
+            limit = price * (1 + cfg[panel.market].get("half_spread_pct", 0) / 100)
             out.append({
                 "strategy": strat.name,
                 "strategy_label": strat.label,
@@ -52,10 +56,11 @@ def candidates(panel, cfg, report):
                 "name": panel.names.get(asset, ""),
                 "name_only": panel.names.get(asset, asset),
                 "price": price,
-                "entry": price,
+                "live_price": panel.live.get(asset),
+                "entry": limit,
                 "stop": float(stop),
                 "target": float(target),
-                "position_pct": plan.position_pct(price, float(stop), cfg),
+                "position_pct": plan.position_pct(limit, float(stop), cfg),
                 "atr": a,
                 "score": float(sc),
                 "rsi14": round(float(rsi14[asset]), 1),
@@ -86,4 +91,4 @@ def held_back(report, cfg):
     """Labels of strategies whose picks are withheld because they lost money in testing."""
     if not cfg["alerts"]["skip_losing_strategies"]:
         return []
-    return [e["label"] for e in report["strategies"].values() if e["headline"].get("verdict") == "losing"]
+    return [e["label"] for e in report["strategies"].values() if e["headline"].get("verdict") in HOLD_BACK]

@@ -128,12 +128,18 @@ class NewsChecks:
 
     def review(self, query, limit, must_mention=()):
         heads = self.headlines(query, limit=limit * 4)
+        heads = [h for h in heads if not JUNK_NEWS.search(h["title"])]
         if must_mention:
             heads = [h for h in heads if mentions(h["title"], must_mention)]
         heads = heads[:limit]
         severe = [h["title"] for h in heads if SEVERE_NEWS.search(h["title"])]
         warn = [h["title"] for h in heads if WARN_NEWS.search(h["title"]) and h["title"] not in severe]
         return {"headlines": heads, "news_severe": severe, "news_warnings": warn}
+
+
+JUNK_NEWS = re.compile(
+    r"\bconvert\b|price prediction|how to (buy|sell)|\bto (usd|eur|aud|gbp|inr)\b|exchange rate|calculator|"
+    r"price today|live price|price chart|where to buy", re.I)
 
 
 def mentions(title, terms):

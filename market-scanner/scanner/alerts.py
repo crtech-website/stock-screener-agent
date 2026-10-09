@@ -1,6 +1,6 @@
 import logging
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 import requests
@@ -14,6 +14,7 @@ VERDICT_LINE = {
     "edge": "Verdict: BEAT THE MARKET in testing. Past results are no guarantee.",
     "unproven": "Verdict: NOT PROVEN. The results could be luck. Use small amounts or practice on paper.",
     "losing": "Verdict: LOST MONEY in testing. Consider skipping these picks.",
+    "lagging": "Verdict: DID CLEARLY WORSE than just holding the market in testing. Consider skipping.",
     "too_few": "Verdict: NOT ENOUGH HISTORY yet to judge this strategy.",
 }
 
@@ -54,7 +55,8 @@ def track_record(bt, hold, months):
     return [
         f"Track record over {period}, using this exact plan ({bt['n']} past trades):",
         f"  Won {bt['win_rate']:.0%} of trades. Average win {bt['avg_win']:+.1%}, average loss {bt['avg_loss']:+.1%}.",
-        f"  Average per trade: {bt['avg_ret']:+.1%}. Compared with buying the whole market instead: {bt['excess']:+.1%}.",
+        f"  Average per trade: {bt['avg_ret']:+.1%}. Buying the whole market on the same days instead "
+        f"averaged {bt.get('avg_mkt', bt['avg_ret'] - bt['excess']):+.1%}.",
         f"  {VERDICT_LINE[bt['verdict']]}",
     ]
 
@@ -68,7 +70,9 @@ def trade_plan(p, cfg):
     pos = p["position_pct"]
     return [
         "The plan:",
-        f"  1. Buy: limit order at {fmt_price(entry)}. If it hasn't filled by the next close, cancel it.",
+        f"  1. Buy: limit order at {fmt_price(entry)}. If it hasn't filled by the next close, cancel it."
+        + (" This is about 1% above the close because Robinhood's buy price runs that much above the market price."
+           if entry > p["price"] * 1.005 else ""),
         f"  2. Take profit: limit sell at {fmt_price(target)} ({target_pct:+.1f}%).",
         f"  3. Stop loss: stop sell at {fmt_price(stop)} ({stop_pct:+.1f}%).",
         f"  4. Time limit: if neither is hit within {p['hold']} days, sell at the market.",
@@ -82,7 +86,13 @@ def trade_plan(p, cfg):
 
 def format_pick(p, cfg):
     name = f" ({p['name']})" if p.get("name") and p["name"] != p["symbol"] else ""
-    lines = [f">> {p['symbol']}{name}, last price {fmt_price(p['price'])}, market value {fmt_money(p.get('market_cap'))}",
+    lines = [f">> {p['symbol']}{name}, closed at {fmt_price(p['price'])}, market value {fmt_money(p.get('market_cap'))}"]
+    if p.get("live_price"):
+        move = (p["live_price"] / p["price"] - 1) * 100
+        lines.append(f"Price now: {fmt_price(p['live_price'])} ({move:+.1f}% since the close)."
+                     + (" That's above the buy price, so the limit order may not fill. Don't chase it."
+                        if move > 2 else ""))
+    lines += [
              f"Why it was picked: {p['reason']}",
              f"Recent moves: {p['change_1d_pct']:+.1f}% today, {p['change_5d_pct']:+.1f}% this week, "
              f"{p['change_20d_pct']:+.1f}% this month."]
@@ -97,6 +107,15 @@ def format_pick(p, cfg):
     return "\n".join(lines)
 
 
+def close_time(market, as_of):
+    """When the bar dated as_of closed, in New York time."""
+    d = datetime.strptime(as_of, "%Y-%m-%d")
+    if market == "stocks":
+        return f"the {d:%b %-d} market close (4:00 PM New York time)"
+    closed = datetime(d.year, d.month, d.day, tzinfo=ZoneInfo("UTC")) + timedelta(days=1)
+    return f"the {d:%b %-d} daily close ({closed.astimezone(NY):%b %-d, %-I:%M %p} New York time)"
+
+
 def format_alert(market, picks_by_strategy, regime_on, when, cfg, months=None, as_of=None, held_back=()):
     bench = "The S&P 500 (SPY)" if market == "stocks" else "Bitcoin"
     mood = (f"{bench} is above its 200-day average, so the overall market is in an uptrend."
@@ -105,9 +124,9 @@ def format_alert(market, picks_by_strategy, regime_on, when, cfg, months=None, a
             "Trend strategies are paused; be extra careful with the rest.")
     head = [f"{'STOCK' if market == 'stocks' else 'CRYPTO'} SCAN",
             ny_time(when),
-            f"Prices are from the {datetime.strptime(as_of, '%Y-%m-%d'):%b %-d} daily close." if as_of else "",
+            f"Signals and plans use {close_time(market, as_of)}." if as_of else "",
             f"Market mood: {mood}",
-            f"Not shown because they lost money in testing: {', '.join(held_back)}." if held_back else ""]
+            f"Not shown because they lost money or trailed the market in testing: {', '.join(held_back)}." if held_back else ""]
     sections = []
     for picks in picks_by_strategy.values():
         if not picks:
@@ -115,6 +134,10 @@ def format_alert(market, picks_by_strategy, regime_on, when, cfg, months=None, a
         first = picks[0]
         block = [RULE, f"STRATEGY: {first['strategy_label']}", f"What it does: {first['strategy_text']}"]
         block += track_record(first.get("backtest"), first["hold"], months)
+        if len(picks) > 1:
+            risk = cfg["trading"]["risk_per_trade_pct"]
+            block.append(f"Note: picks from the same strategy tend to rise and fall together. Taking all "
+                         f"{len(picks)} means about {risk * len(picks):g}% of your account is at risk at once.")
         sections.append("\n".join(block))
         sections += [format_pick(p, cfg) for p in picks]
     if not sections:

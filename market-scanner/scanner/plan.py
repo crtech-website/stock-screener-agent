@@ -40,11 +40,25 @@ def position_pct(entry, stop, cfg):
     return min(t["risk_per_trade_pct"] / stop_pct * 100, t["max_position_pct"]) if stop_pct > 0 else 0.0
 
 
-def market_index(panel):
-    """Equal-weight index of every liquid asset, the 'just buy the whole market' baseline."""
-    daily = panel.close.pct_change(fill_method=None).where(panel.tradable.shift(1, fill_value=False))
-    daily = daily.clip(-0.5, 1.0).mean(axis=1).fillna(0)
-    return (1 + daily).cumprod().to_numpy()
+def market_returns(panel, ti, exit_day, cache=None):
+    """What buying every liquid asset equally on day ti and selling on exit_day returned.
+
+    Buy-and-hold over each trade's own window, dropping the top and bottom 2% so a few
+    bad prints can't move the baseline.
+    """
+    c = panel.close.to_numpy(dtype="float64")
+    trad = panel.tradable.to_numpy()
+    cache = {} if cache is None else cache
+    out = np.empty(len(ti))
+    for i, (a, b) in enumerate(zip(ti, exit_day)):
+        key = (int(a), int(b))
+        if key not in cache:
+            r = c[b][trad[a]] / c[a][trad[a]] - 1
+            r = np.sort(r[np.isfinite(r)])
+            trim = max(1, int(len(r) * 0.02)) if len(r) >= 20 else 0
+            cache[key] = float(r[trim:len(r) - trim].mean()) if len(r) > 2 * trim else 0.0
+        out[i] = cache[key]
+    return out
 
 
 def simulate(close, high, low, ti, aj, stop, target, hold, cost):
@@ -92,7 +106,7 @@ def plan_arrays(panel, cfg):
     return c, h, l, a
 
 
-def backtest_signals(panel, sig, prm, cfg, arrays=None, mkt=None):
+def backtest_signals(panel, sig, prm, cfg, arrays=None, mkt_cache=None):
     """Simulate the strategy's plan on every past signal."""
     c, h, l, a = arrays or plan_arrays(panel, cfg)
     ti, aj = np.nonzero(sig.to_numpy())
@@ -105,8 +119,7 @@ def backtest_signals(panel, sig, prm, cfg, arrays=None, mkt=None):
     stop, target = levels(entry, atr_v, sma_v, prm, cfg)
     cost = cfg[panel.market]["cost_bps"] / 10_000
     trades = simulate(c, h, l, ti, aj, stop, target, prm["hold"], cost)
-    mkt = market_index(panel) if mkt is None else mkt
-    trades["mkt"] = mkt[trades["exit_day"].to_numpy()] / mkt[trades["ti"].to_numpy()] - 1
+    trades["mkt"] = market_returns(panel, trades["ti"].to_numpy(), trades["exit_day"].to_numpy(), mkt_cache)
     return trades
 
 
@@ -130,12 +143,14 @@ def summarize(trades, hold, cfg):
         "n": n,
         "win_rate": float((ret > 0).mean()),
         "avg_ret": float(ret.mean()),
+        "avg_mkt": float(trades["mkt"].mean()),
         "avg_win": float(wins.mean()) if len(wins) else 0.0,
         "avg_loss": float(losses.mean()) if len(losses) else 0.0,
         "pct_target": float((trades["exit_reason"] == "target").mean()),
         "pct_stop": float((trades["exit_reason"] == "stop").mean()),
         "pct_time": float((trades["exit_reason"] == "time").mean()),
-        "excess": float(blocks.mean()),
+        # Same per-trade weighting as avg_ret, so "average per trade" and "vs market" add up.
+        "excess": float(excess.mean()),
         "t": float(t),
     }
     b = cfg["backtest"]
@@ -145,6 +160,8 @@ def summarize(trades, hold, cfg):
         out["verdict"] = "edge"
     elif out["avg_ret"] < 0:
         out["verdict"] = "losing"
+    elif out["excess"] < 0 and t <= -b["min_t_stat"]:
+        out["verdict"] = "lagging"
     else:
         out["verdict"] = "unproven"
     return out

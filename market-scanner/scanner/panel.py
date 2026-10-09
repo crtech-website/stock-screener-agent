@@ -19,6 +19,8 @@ class Panel:
     market_cap: pd.DataFrame | None = None
     names: dict = field(default_factory=dict)
     symbols: dict = field(default_factory=dict)
+    live: dict = field(default_factory=dict)      # latest prices, if newer than the last close
+    live_at: str | None = None
 
     @property
     def regime(self):

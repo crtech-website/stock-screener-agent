@@ -17,7 +17,9 @@ STABLE_SYMBOLS = {
     "usdt", "usdc", "dai", "fdusd", "tusd", "usdd", "pyusd", "usde", "usds", "frax", "lusd",
     "gusd", "busd", "usdp", "eurc", "eurt", "xaut", "paxg", "usd0", "rlusd", "usdtb", "usdg",
 }
-DERIVATIVE_NAME = re.compile(r"\b(wrapped|staked|bridged|liquid staking|restaked)\b|\busd\b", re.I)
+DERIVATIVE_NAME = re.compile(
+    r"\b(wrapped|staked|bridged|liquid staking|restaked|heloc|treasury|treasuries|t-bill|tokenized|"
+    r"money market|yield fund|gold)\b|\busd\b", re.I)
 
 
 def cache_dir():
@@ -76,6 +78,28 @@ def daily_history(client, coin_id, days):
     return out[out["date"] < today].assign(id=coin_id)
 
 
+def venue_symbols(cfg):
+    """Symbols the trading platform sells, or None to scan everything."""
+    name = cfg["crypto"].get("only_symbols_file")
+    if not name:
+        return None
+    path = Path(name)
+    if not path.exists():
+        log.warning("crypto.only_symbols_file %s not found; scanning every coin", name)
+        return None
+    return {line.strip().upper() for line in path.read_text().splitlines()
+            if line.strip() and not line.startswith("#")}
+
+
+def keep_venue_coins(markets, symbols):
+    """Restrict to coins the platform sells. When several coins share a ticker, the largest one wins,
+    since that is almost always the one a broker lists."""
+    if symbols is None:
+        return markets
+    listed = markets[markets["symbol"].str.upper().isin(symbols)]
+    return listed.sort_values("market_cap", ascending=False).drop_duplicates("symbol", keep="first")
+
+
 def update_history(client, cfg, now=None):
     c = cfg["crypto"]
     now = now or datetime.now(timezone.utc)
@@ -92,6 +116,7 @@ def update_history(client, cfg, now=None):
     liquid = markets[(markets["market_cap"].fillna(0) >= c["min_market_cap"])
                      & (markets["total_volume"].fillna(0) >= c["min_volume_24h"])]
     liquid = liquid[~liquid.apply(lambda r: is_stable_or_derivative(r["symbol"], r["name"]), axis=1)]
+    liquid = keep_venue_coins(liquid, venue_symbols(cfg))
 
     yesterday = (now - timedelta(days=1)).strftime("%Y-%m-%d")
     last_seen = hist.groupby("id")["date"].max() if not hist.empty else pd.Series(dtype=str)
@@ -127,11 +152,19 @@ def update_history(client, cfg, now=None):
     cutoff = (now - timedelta(days=c["history_days"] + 5)).strftime("%Y-%m-%d")
     hist = hist[hist["date"] >= cutoff]
     hist.to_pickle(hist_file)
-    meta_file.write_text(json.dumps(meta))
+    meta_file.write_text(json.dumps({k: v for k, v in meta.items() if k != "_live"}))
 
     if provisional is not None:
-        hist = pd.concat([hist, provisional], ignore_index=True).drop_duplicates(["date", "id"], keep="last")
+        meta["_live"] = {"prices": provisional.set_index("id")["close"].dropna().to_dict(),
+                         "at": now.isoformat()}
     return hist, meta
+
+
+def remove_spikes(close, factor=3.0):
+    """Blank out one-day bad prints: a price 3x away from both the day before and the day after."""
+    up = (close / close.shift(1) > factor) & (close / close.shift(-1) > factor)
+    down = (close / close.shift(1) < 1 / factor) & (close / close.shift(-1) < 1 / factor)
+    return close.mask(up | down)
 
 
 def build_panel(hist, meta, cfg):
@@ -140,16 +173,36 @@ def build_panel(hist, meta, cfg):
     def wide(col):
         return hist.pivot(index="date", columns="id", values=col).sort_index().astype("float64")
 
+    # Only completed UTC days. A day still in progress would make signals differ from what was
+    # backtested, since every backtest bar is a full day.
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    hist = hist[hist["date"] < today]
     close, mcap, volume = wide("close"), wide("market_cap"), wide("volume")
     bench = close[c["benchmark"]] if c["benchmark"] in close else pd.Series(dtype=float)
     excluded = [i for i in close.columns
                 if is_stable_or_derivative(meta.get(i, {}).get("symbol", ""), meta.get(i, {}).get("name", ""))]
+    # Pegged tokens (stablecoins, tokenized loans and treasuries) that the name check missed:
+    # they sit within 10% of $1 nearly every day and barely move.
+    recent = close.tail(90)
+    near_one = recent.apply(lambda s: s.dropna().between(0.9, 1.1).mean() if s.notna().any() else 0)
+    typical_move = recent.pct_change(fill_method=None).abs().median()
+    excluded += list(close.columns[(near_one >= 0.85) & (typical_move < 0.02)])
+    allowed = venue_symbols(cfg)
+    if allowed is not None:
+        # Coins cached before the list was applied, or that share a ticker with a listed coin.
+        ids = pd.DataFrame({"id": close.columns,
+                            "symbol": [meta.get(i, {}).get("symbol", "").upper() for i in close.columns],
+                            "cap": mcap.ffill().iloc[-1].reindex(close.columns).fillna(0).to_numpy()})
+        ids = ids[ids["symbol"].isin(allowed)].sort_values("cap", ascending=False).drop_duplicates("symbol")
+        excluded += [i for i in close.columns if i not in set(ids["id"])]
     keep = [i for i in close.columns if i not in excluded]
-    close, mcap, volume = close[keep], mcap[keep], volume[keep]
+    close, mcap, volume = remove_spikes(close[keep]), mcap[keep], volume[keep]
     tradable = close.notna() & (mcap >= c["min_market_cap"]) & (volume >= c["min_volume_24h"])
     names = {i: meta.get(i, {}).get("name", i) for i in keep}
     symbols = {i: meta.get(i, {}).get("symbol", i) for i in keep}
-    return Panel("crypto", close, volume, tradable, bench, market_cap=mcap, names=names, symbols=symbols)
+    live = meta.get("_live", {})
+    return Panel("crypto", close, volume, tradable, bench, market_cap=mcap, names=names, symbols=symbols,
+                 live=live.get("prices", {}), live_at=live.get("at"))
 
 
 def load(cfg, refresh=True, client=None):

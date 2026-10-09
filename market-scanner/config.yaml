@@ -1,0 +1,88 @@
+# Every data source here is free: Massive Basic (stocks), CoinGecko Demo (crypto), SEC EDGAR,
+# DefiLlama, Google News RSS, GitHub Actions and Telegram/Discord. The LLM review is optional
+# and uses a free tier when turned on.
+
+stocks:
+  api_base: https://api.massive.com    # formerly Polygon.io
+  calls_per_minute: 5                  # free Basic plan limit
+  history_days: 480                    # the free plan serves about two years
+  max_backfill_per_run: 150            # first run takes ~30 min; full history after ~4 runs
+  include_delisted: true               # keeps dead stocks in backtests (less survivorship bias)
+  min_price: 3
+  min_avg_dollar_volume: 5_000_000     # 20-day average of close * volume
+  min_market_cap: 50_000_000           # checked only for final candidates
+  benchmark: SPY
+  cost_bps: 20                         # round-trip cost assumed in backtests
+
+crypto:
+  calls_per_minute: 30
+  history_days: 365                    # Demo plan history limit
+  max_backfill_per_run: 100
+  min_market_cap: 50_000_000
+  min_volume_24h: 5_000_000
+  benchmark: bitcoin
+  cost_bps: 40
+
+# Each strategy can override any setting per market under a `stocks:` or `crypto:` key.
+# regime: true means the strategy only fires while the benchmark is above its 200-day average.
+# hold: the holding period (in bars) the backtest and scorecard judge the strategy by.
+strategies:
+  oversold_bounce:
+    enabled: true
+    markets: [stocks, crypto]
+    regime: false
+    hold: 5
+    rsi_below: 30
+    drop_pct: 15
+    drop_bars: 2
+
+  connors_rsi2:
+    enabled: true
+    markets: [stocks, crypto]
+    regime: false
+    hold: 5
+    rsi2_below: 5
+
+  ibs_reversion:
+    enabled: true
+    markets: [stocks]                  # needs daily high/low, which the crypto feed lacks
+    regime: false
+    hold: 3
+    ibs_below: 0.15
+
+  trend_breakout:
+    enabled: true
+    markets: [stocks, crypto]
+    regime: true
+    hold: 20
+    volume_mult: 1.5
+    stocks: {fast: 50, mid: 150, slow: 200, high_window: 252}
+    crypto: {fast: 20, mid: 50, slow: 100, high_window: 55}
+
+  momentum:
+    enabled: true
+    markets: [stocks, crypto]
+    regime: true
+    stocks: {lookback: 252, skip: 21, top_pct: 0.05, rebalance: monthly, hold: 21}
+    crypto: {lookback: 90, skip: 7, top_pct: 0.10, rebalance: weekly, hold: 7}
+
+backtest:
+  horizons: [1, 5, 10, 20]
+  require_edge: false        # true = stay silent for strategies whose backtest doesn't beat the market
+  min_t_stat: 2.0
+
+checks:
+  candidates_per_strategy: 5
+  exclude_sec_severe: true   # bankruptcy, delisting notice, restatement, late filing
+  exclude_dilution: false    # recent S-1/S-3/424B offering paperwork
+  news_headlines: 5
+
+llm:
+  provider: none             # none | groq | gemini | openrouter
+  model: openai/gpt-oss-120b # Groq's free model. For Gemini, copy a Flash model id from AI Studio.
+  max_reviews: 12
+  calls_per_minute: 3        # Groq's free tier allows ~8k tokens/min
+
+alerts:
+  picks_per_strategy: 3
+  send_when_empty: false

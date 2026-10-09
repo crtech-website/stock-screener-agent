@@ -1,9 +1,10 @@
 import logging
-import os
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 import requests
+
+from .secrets import secret
 
 log = logging.getLogger(__name__)
 
@@ -143,7 +144,9 @@ def format_alert(market, picks_by_strategy, regime_on, when, cfg, months=None, a
         sections.append("\n".join(block))
         sections += [format_pick(p, cfg) for p in picks]
     if not sections:
-        sections = ["No trade ideas passed the filters today."]
+        # A quiet night gets a short message; the order guide only matters when there's a trade.
+        return ("\n".join(x for x in head if x) + "\n\nNo trade ideas passed the filters today. "
+                "Nothing to do; the scanner ran normally.\nAutomated screen, not investment advice.")
     return "\n".join(x for x in head if x) + "\n\n" + "\n\n".join(sections) + f"\n\n{RULE}\n" + GLOSSARY
 
 
@@ -176,14 +179,14 @@ def send(text):
 
 def _send(text):
     sent = False
-    token, chat = os.environ.get("TELEGRAM_BOT_TOKEN"), os.environ.get("TELEGRAM_CHAT_ID")
+    token, chat = secret("TELEGRAM_BOT_TOKEN"), secret("TELEGRAM_CHAT_ID")
     if token and chat:
         for part in chunks(text, 4000):
             requests.post(f"https://api.telegram.org/bot{token}/sendMessage",
                           json={"chat_id": chat, "text": part, "disable_web_page_preview": True},
                           timeout=30).raise_for_status()
         sent = True
-    webhook = os.environ.get("DISCORD_WEBHOOK_URL")
+    webhook = secret("DISCORD_WEBHOOK_URL")
     if webhook:
         for part in chunks(text, 1900):
             requests.post(webhook, json={"content": part}, timeout=30).raise_for_status()

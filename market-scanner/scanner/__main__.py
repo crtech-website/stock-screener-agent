@@ -4,6 +4,7 @@ import logging
 from datetime import datetime, timezone
 from pathlib import Path
 
+import requests
 import yaml
 
 from . import alerts, backtest, data_crypto, data_stocks, ledger, scan
@@ -13,7 +14,27 @@ log = logging.getLogger("scanner")
 DATA = {"stocks": data_stocks, "crypto": data_crypto}
 
 
+AUTH_HELP = {
+    "stocks": "Massive rejected the API key. Check the MASSIVE_API_KEY secret on GitHub "
+              "(Settings > Secrets and variables > Actions): paste the key again from massive.com, with no spaces.",
+    "crypto": "CoinGecko rejected the API key. Check the COINGECKO_API_KEY secret on GitHub "
+              "(Settings > Secrets and variables > Actions): paste the key again, with no spaces.",
+}
+
+
 def cmd_scan(args, cfg, out):
+    try:
+        _scan(args, cfg, out)
+    except requests.HTTPError as e:
+        code = e.response.status_code if e.response is not None else None
+        why = AUTH_HELP[args.market] if code in (401, 403) else f"a data request failed ({e})."
+        if not args.no_alert:
+            alerts.send(f"{args.market.upper()} SCAN FAILED\n{alerts.ny_time(datetime.now(timezone.utc))}\n{why}")
+        log.error(why)
+        raise SystemExit(1)
+
+
+def _scan(args, cfg, out):
     data = DATA[args.market]
     panel, client = data.load(cfg)
     now = datetime.now(timezone.utc)

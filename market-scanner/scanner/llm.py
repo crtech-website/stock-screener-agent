@@ -8,12 +8,12 @@ what the backtest measured.
 
 import json
 import logging
-import os
 import re
 
 import requests
 
 from .http import RateLimitedClient
+from .secrets import secret
 
 log = logging.getLogger(__name__)
 
@@ -59,11 +59,11 @@ def review(candidates, cfg):
     if lc["provider"] == "none":
         return candidates
     base, key_env = PROVIDERS[lc["provider"]]
-    if not os.environ.get(key_env):
+    if not secret(key_env):
         log.warning("llm.provider is %s but %s is not set; skipping LLM review", lc["provider"], key_env)
         return candidates
     client = RateLimitedClient(base, lc["calls_per_minute"],
-                               headers={"Authorization": f"Bearer {os.environ[key_env]}"})
+                               headers={"Authorization": f"Bearer {secret(key_env)}"})
     for c in candidates[: lc["max_reviews"]]:
         try:
             resp = client.post("/chat/completions", {

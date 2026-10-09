@@ -583,3 +583,38 @@ def test_checks_and_alerts_survive_outages(monkeypatch):
 
     monkeypatch.setattr(alerts.requests, "post", boom)
     assert alerts.send("hello") is False
+
+
+def test_secrets_ignore_stray_spaces(monkeypatch):
+    from scanner.secrets import secret
+    monkeypatch.setenv("MASSIVE_API_KEY", "abc123 \n")
+    monkeypatch.setenv("EMPTY_ONE", "   ")
+    assert secret("MASSIVE_API_KEY") == "abc123"
+    assert secret("EMPTY_ONE", "fallback") == "fallback"
+    client = data_stocks.client_from_env(CFG)
+    assert client.default_params["apiKey"] == "abc123"
+
+
+def test_rejected_key_sends_plain_failure_message(monkeypatch, tmp_path):
+    import requests
+    from scanner import __main__ as m
+
+    resp = requests.Response()
+    resp.status_code = 401
+
+    def bad_load(cfg, refresh=True, client=None):
+        raise requests.HTTPError("401 Unauthorized", response=resp)
+
+    sent = []
+    monkeypatch.setattr(m.DATA["stocks"], "load", bad_load)
+    monkeypatch.setattr(m.alerts, "send", lambda text: sent.append(text))
+    with pytest.raises(SystemExit):
+        m.main(["--out", str(tmp_path), "scan", "stocks"])
+    assert "STOCKS SCAN FAILED" in sent[0] and "MASSIVE_API_KEY" in sent[0]
+
+
+def test_quiet_night_message_is_short():
+    text = alerts.format_alert("crypto", {}, True, datetime(2026, 10, 10, 0, 50, tzinfo=timezone.utc), CFG,
+                               as_of="2026-10-09", held_back=["Momentum leaders"])
+    assert "No trade ideas passed" in text and "ran normally" in text and "HOW TO PLACE" not in text
+    assert "Momentum leaders" in text and len(text) < 600

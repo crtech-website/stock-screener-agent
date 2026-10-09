@@ -9,6 +9,7 @@ import pandas as pd
 import requests
 
 from .http import RateLimitedClient
+from .secrets import secret
 from .indicators import sma
 from .panel import Panel
 
@@ -21,8 +22,10 @@ def cache_dir():
 
 def client_from_env(cfg):
     s = cfg["stocks"]
-    return RateLimitedClient(s["api_base"], s["calls_per_minute"],
-                             params={"apiKey": os.environ["MASSIVE_API_KEY"]})
+    key = secret("MASSIVE_API_KEY")
+    if not key:
+        raise SystemExit("MASSIVE_API_KEY is not set. Add it under Settings > Secrets and variables > Actions.")
+    return RateLimitedClient(s["api_base"], s["calls_per_minute"], params={"apiKey": key})
 
 
 def _cached(path, max_age_days):

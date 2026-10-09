@@ -15,6 +15,7 @@ from urllib.parse import quote_plus
 import requests
 
 from .http import RateLimitedClient
+from .secrets import secret
 
 log = logging.getLogger(__name__)
 
@@ -33,7 +34,7 @@ WARN_NEWS = re.compile(
 class SecChecks:
     def __init__(self):
         # SEC rejects requests without a descriptive User-Agent that includes contact info.
-        ua = os.environ.get("SEC_USER_AGENT", "market-scanner research contact@example.com")
+        ua = secret("SEC_USER_AGENT", "market-scanner research contact@example.com")
         self.client = RateLimitedClient(calls_per_minute=300, headers={"User-Agent": ua})
         self._ciks = None
 

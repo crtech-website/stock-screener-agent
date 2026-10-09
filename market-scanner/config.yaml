@@ -115,4 +115,4 @@ llm:
 alerts:
   picks_per_strategy: 3
   skip_losing_strategies: true  # hold back picks from strategies that lost money in the backtest
-  send_when_empty: false
+  send_when_empty: true          # a short 'no picks tonight' message confirms the scan ran

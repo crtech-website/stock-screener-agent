@@ -9,6 +9,7 @@ import pandas as pd
 import requests
 
 from .http import RateLimitedClient
+from .secrets import secret
 from .panel import Panel
 
 log = logging.getLogger(__name__)
@@ -30,8 +31,8 @@ def cache_dir():
 def client_from_env(cfg):
     headers = {"accept": "application/json"}
     rate = cfg["crypto"]["calls_per_minute"]
-    if os.environ.get("COINGECKO_API_KEY"):
-        headers["x-cg-demo-api-key"] = os.environ["COINGECKO_API_KEY"]
+    if secret("COINGECKO_API_KEY"):
+        headers["x-cg-demo-api-key"] = secret("COINGECKO_API_KEY")
     else:
         # Keyless access works for trying things out but is throttled far below the Demo plan.
         rate = min(rate, 4)

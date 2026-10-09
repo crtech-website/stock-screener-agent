@@ -1,0 +1,33 @@
+{
+ "market": "stocks",
+ "generated_utc": "2026-10-09T15:45:47Z",
+ "generated_new_york": "Friday, Oct 9, 2026, 11:45 AM New York time",
+ "as_of": "2026-10-08",
+ "prices_from": "the Oct 8 market close (4:00 PM New York time)",
+ "market_mood": "S&P 500 (SPY) is above its 200-day average: the overall market is in an uptrend.",
+ "held_back": [
+  "Oversold bounce"
+ ],
+ "loading": [
+  "Connors RSI(2) pullback (has 115 of 210 days)",
+  "IBS reversion (has 115 of 210 days)",
+  "Trend breakout (has 115 of 252 days)",
+  "Momentum leaders (has 115 of 253 days)"
+ ],
+ "risk_per_trade_pct": 1,
+ "strategies": {
+  "oversold_bounce": {
+   "label": "Oversold bounce",
+   "hold_days": 5,
+   "market_filter": false,
+   "verdict": "losing",
+   "past_trades": 571,
+   "win_rate_pct": 45.01,
+   "avg_win_pct": 13.65,
+   "avg_loss_pct": -12.56,
+   "avg_per_trade_pct": -0.76,
+   "market_same_days_pct": 0.27
+  }
+ },
+ "picks": []
+}

@@ -116,7 +116,8 @@ def close_time(market, as_of):
     return f"the {d:%b %-d} daily close ({closed.astimezone(NY):%b %-d, %-I:%M %p} New York time)"
 
 
-def format_alert(market, picks_by_strategy, regime_on, when, cfg, months=None, as_of=None, held_back=()):
+def format_alert(market, picks_by_strategy, regime_on, when, cfg, months=None, as_of=None, held_back=(),
+                 loading=()):
     bench = "The S&P 500 (SPY)" if market == "stocks" else "Bitcoin"
     mood = (f"{bench} is above its 200-day average, so the overall market is in an uptrend."
             if regime_on else
@@ -126,7 +127,8 @@ def format_alert(market, picks_by_strategy, regime_on, when, cfg, months=None, a
             ny_time(when),
             f"Signals and plans use {close_time(market, as_of)}." if as_of else "",
             f"Market mood: {mood}",
-            f"Not shown because they lost money or trailed the market in testing: {', '.join(held_back)}." if held_back else ""]
+            f"Not shown because they lost money or trailed the market in testing: {', '.join(held_back)}." if held_back else "",
+            f"Still loading price history, not active yet: {', '.join(loading)}." if loading else ""]
     sections = []
     for picks in picks_by_strategy.values():
         if not picks:
@@ -164,6 +166,15 @@ def chunks(text, limit):
 
 
 def send(text):
+    try:
+        return _send(text)
+    except requests.RequestException as e:
+        # The ledger and picks file are already written; a messaging hiccup must not fail the run.
+        log.warning("alert delivery failed: %s", e)
+        return False
+
+
+def _send(text):
     sent = False
     token, chat = os.environ.get("TELEGRAM_BOT_TOKEN"), os.environ.get("TELEGRAM_CHAT_ID")
     if token and chat:

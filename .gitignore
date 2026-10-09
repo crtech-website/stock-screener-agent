@@ -1,0 +1,5 @@
+market-scanner/.cache/
+market-scanner/output/
+__pycache__/
+.pytest_cache/
+.env

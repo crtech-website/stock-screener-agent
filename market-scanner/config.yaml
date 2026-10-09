@@ -6,7 +6,7 @@ stocks:
   api_base: https://api.massive.com    # formerly Polygon.io
   calls_per_minute: 5                  # free Basic plan limit
   history_days: 480                    # the free plan serves about two years
-  max_backfill_per_run: 150            # first run takes ~30 min; full history after ~4 runs
+  max_backfill_per_run: 120            # first run takes ~25 min; full history after 4-5 runs
   include_delisted: true               # keeps dead stocks in backtests (less survivorship bias)
   min_price: 3
   min_avg_dollar_volume: 5_000_000     # 20-day average of close * volume

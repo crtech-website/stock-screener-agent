@@ -494,3 +494,92 @@ def test_crypto_universe_limited_to_platform_coins(tmp_path):
     assert sorted(kept["id"]) == ["bitcoin", "starknet"]
     assert data_crypto.venue_symbols({**CFG, "crypto": {**CFG["crypto"], "only_symbols_file": None}}) is None
     assert "STRK" in data_crypto.venue_symbols(CFG) and len(data_crypto.venue_symbols(CFG)) == 92
+
+
+def test_crypto_refetches_when_yesterday_is_missing(tmp_path, monkeypatch):
+    monkeypatch.setenv("SCANNER_CACHE", str(tmp_path))
+    markets = [{"id": "bitcoin", "symbol": "btc", "name": "Bitcoin", "current_price": 100.0,
+                "market_cap": 2e12, "total_volume": 5e10}]
+    stored = pd.DataFrame({"date": pd.date_range("2026-08-01", "2026-10-07").strftime("%Y-%m-%d"),
+                           "id": "bitcoin", "close": 1.0, "market_cap": 1e12, "volume": 1e10})
+    (tmp_path / "crypto").mkdir()
+    stored.to_pickle(tmp_path / "crypto" / "history.pkl")
+    calls = []
+
+    class Fake:
+        def get(self, path, params=None):
+            if path == "/coins/markets":
+                return markets if params["page"] == 1 else []
+            calls.append(params["days"])
+            return {"prices": [], "market_caps": [], "total_volumes": []}
+
+    # Oct 9, 14:00 UTC: Oct 8's close is missing (gap 2) and must be fetched.
+    data_crypto.update_history(Fake(), CFG, now=datetime(2026, 10, 9, 14, 0, tzinfo=timezone.utc))
+    assert calls == [3]
+    # Oct 8, 14:00 UTC: Oct 7 is stored (gap 1), nothing to fetch.
+    calls.clear()
+    data_crypto.update_history(Fake(), CFG, now=datetime(2026, 10, 8, 14, 0, tzinfo=timezone.utc))
+    assert calls == []
+
+
+def test_stock_panel_survives_duplicate_rows():
+    rows = []
+    for d in pd.bdate_range("2026-01-01", periods=25).strftime("%Y-%m-%d"):
+        rows += [{"date": d, "ticker": "AAA", "h": 11, "l": 9, "c": 10, "v": 1e6},
+                 {"date": d, "ticker": "SPY", "h": 500, "l": 500, "c": 500, "v": 1e8}]
+    rows.append({"date": rows[0]["date"], "ticker": "AAA", "h": 11, "l": 9, "c": 10.5, "v": 1e6})
+    universe = pd.DataFrame({"ticker": ["AAA"], "name": ["A"], "active": True})
+    p = data_stocks.build_panel(pd.DataFrame(rows), universe, CFG)
+    assert p.close["AAA"].iloc[0] == 10.5
+
+
+def test_loading_lists_strategies_short_of_history():
+    from scanner.strategies import loading
+    short = random_panel(n_days=150)
+    names = " ".join(loading(CFG, short))
+    assert "Connors" in names and "Momentum" in names and "Oversold" not in names
+    assert loading(CFG, random_panel(n_days=320)) == []
+    text = alerts.format_alert("stocks", {}, True, datetime(2026, 10, 9, 22, 40, tzinfo=timezone.utc), CFG,
+                               as_of="2026-10-09", loading=loading(CFG, short))
+    assert "Still loading price history" in text
+
+
+def test_one_failing_coin_does_not_sink_the_crypto_scan(tmp_path, monkeypatch):
+    import requests
+    monkeypatch.setenv("SCANNER_CACHE", str(tmp_path))
+    markets = [{"id": c, "symbol": s, "name": n, "current_price": 1.5, "market_cap": 2e9, "total_volume": 5e8}
+               for c, s, n in (("bitcoin", "btc", "Bitcoin"), ("ethereum", "eth", "Ethereum"))]
+
+    class Fake:
+        def get(self, path, params=None):
+            if path == "/coins/markets":
+                return markets if params["page"] == 1 else []
+            if "ethereum" in path:
+                raise requests.HTTPError("429 Too Many Requests")
+            days = pd.date_range("2026-08-01", "2026-10-08", freq="D", tz="UTC")
+            pts = [[int(t.timestamp() * 1000), 100.0] for t in days]
+            return {"prices": pts, "market_caps": [[t, 1e12] for t, _ in pts], "total_volumes": [[t, 1e10] for t, _ in pts]}
+
+    hist, _ = data_crypto.update_history(Fake(), CFG, now=datetime(2026, 10, 9, 14, 0, tzinfo=timezone.utc))
+    assert set(hist["id"]) == {"bitcoin"}
+
+
+def test_checks_and_alerts_survive_outages(monkeypatch):
+    import requests
+
+    class DownSec:
+        def review(self, t):
+            raise requests.ConnectionError("SEC down")
+
+    monkeypatch.setattr(checks, "SecChecks", DownSec)
+    kept = checks.review_candidates([{"id": "A", "symbol": "A", "strategy": "s", "name_only": "A Co"}], "stocks", CFG)
+    assert kept and "background checks unavailable tonight" in kept[0]["flags"]
+
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "x")
+    monkeypatch.setenv("TELEGRAM_CHAT_ID", "y")
+
+    def boom(*a, **k):
+        raise requests.ConnectionError("telegram down")
+
+    monkeypatch.setattr(alerts.requests, "post", boom)
+    assert alerts.send("hello") is False

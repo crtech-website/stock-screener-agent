@@ -2,11 +2,12 @@ name: Stock scan
 
 on:
   schedule:
+    # 22:35 UTC on weekdays is after the US close in both summer and winter time.
     - cron: "35 22 * * 1-5"
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: write   # to commit the ledger and tonight's picks file
 
 concurrency:
   group: stocks-scan
@@ -18,17 +19,17 @@ defaults:
 
 jobs:
   scan:
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: market-scanner/requirements.txt
       - run: pip install -r requirements.txt
-      - uses: actions/cache/restore@v4
+      - uses: actions/cache/restore@v6
         with:
           path: market-scanner/.cache/stocks
           key: stocks-data-${{ github.run_id }}
@@ -43,19 +44,28 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-      - uses: actions/cache/save@v4
+      # Saved even if the scan fails, so a long backfill is never thrown away.
+      - uses: actions/cache/save@v6
         if: always()
         with:
           path: market-scanner/.cache/stocks
           key: stocks-data-${{ github.run_id }}
-      - name: Commit ledger
+      - name: Commit ledger and picks file
+        if: always()
         run: |
           mkdir -p ledger
           git config user.name "market-scanner"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add ledger/
-          git diff --cached --quiet || (git commit -m "Ledger: stocks $(date -u +%F)" && git pull --rebase && git push)
-      - uses: actions/upload-artifact@v4
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Ledger: stocks $(date -u +%F)"
+          # The crypto and stock scans can finish at the same moment; retry if the other one pushed first.
+          for i in 1 2 3; do
+            if git pull --rebase --quiet && git push --quiet; then exit 0; fi
+            sleep $((i * 10))
+          done
+          exit 1
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: stocks-${{ github.run_id }}

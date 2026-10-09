@@ -2,7 +2,7 @@ name: Weekly scorecard
 
 on:
   schedule:
-    - cron: "7 14 * * 6"
+    - cron: "7 14 * * 6"   # Saturdays, 10:07 AM New York in summer
   workflow_dispatch:
 
 defaults:
@@ -11,29 +11,30 @@ defaults:
 
 jobs:
   scorecard:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: market-scanner/requirements.txt
       - run: pip install -r requirements.txt
-      - uses: actions/cache/restore@v4
+      - uses: actions/cache/restore@v6
         with:
           path: market-scanner/.cache/stocks
           key: stocks-data-scorecard
           restore-keys: stocks-data-
-      - uses: actions/cache/restore@v4
+      - uses: actions/cache/restore@v6
         with:
           path: market-scanner/.cache/crypto
           key: crypto-data-scorecard
           restore-keys: crypto-data-
+      # One market failing (say, no stock data yet) shouldn't stop the other's scorecard.
       - run: |
-          python -m scanner scorecard stocks --send || true
-          python -m scanner scorecard crypto --send || true
+          python -m scanner scorecard stocks --send || echo "stocks scorecard skipped"
+          python -m scanner scorecard crypto --send || echo "crypto scorecard skipped"
         env:
           MASSIVE_API_KEY: ${{ secrets.MASSIVE_API_KEY }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}

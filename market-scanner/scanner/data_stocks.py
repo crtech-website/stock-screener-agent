@@ -149,6 +149,8 @@ def apply_new_splits(client, bars, state, today):
 
 def build_panel(bars, universe, cfg):
     s = cfg["stocks"]
+    # A day fetched twice (e.g. a cache restored without its state file) must not crash the pivot.
+    bars = bars.drop_duplicates(["date", "ticker"], keep="last")
     bench = bars[bars["ticker"] == s["benchmark"]].set_index("date")["c"].sort_index()
     bars = bars[bars["ticker"].isin(set(universe["ticker"]))]
 

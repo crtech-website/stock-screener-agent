@@ -91,7 +91,7 @@ def scorecard(market, panel, cfg):
     return "\n".join(lines)
 
 
-def write_latest(market, picks_by_strategy, report, when, cfg, regime_on, held_back=()):
+def write_latest(market, picks_by_strategy, report, when, cfg, regime_on, held_back=(), loading=()):
     """Tonight's full report in machine-readable form, read by the Claude agent that checks Robinhood.
 
     It carries everything the Telegram alert shows, so the agent can give the complete
@@ -139,6 +139,7 @@ def write_latest(market, picks_by_strategy, report, when, cfg, regime_on, held_b
         "market_mood": (f"{bench} is above its 200-day average: the overall market is in an uptrend." if regime_on
                         else f"{bench} is below its 200-day average: the market is weak; trend strategies are paused."),
         "held_back": list(held_back),
+        "loading": list(loading),
         "risk_per_trade_pct": cfg["trading"]["risk_per_trade_pct"],
         "strategies": strategies,
         "picks": picks,

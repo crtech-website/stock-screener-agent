@@ -110,6 +110,21 @@ def active_strategies(cfg, panel):
     return out
 
 
+def loading(cfg, panel):
+    """Labels of strategies enabled for this market that don't have enough history yet."""
+    out = []
+    for name, strat in REGISTRY.items():
+        prm = params_for(cfg, name, panel.market)
+        if not prm.get("enabled") or panel.market not in prm["markets"]:
+            continue
+        if strat.needs_high_low and panel.high is None:
+            continue
+        need = strat.min_bars(prm)
+        if len(panel.close) < need:
+            out.append(f"{strat.label} (has {len(panel.close)} of {need} days)")
+    return out
+
+
 def signals(strat, prm, panel, use_regime=None):
     sig, score = strat.build(panel, prm)
     sig = sig.fillna(False).astype(bool) & panel.tradable
@@ -154,9 +169,10 @@ def explain(name, panel, prm, asset, score):
                 f"{rsi(c, 14).iloc[-1]:.0f} out of 100; under 30 means it has been sold very hard.")
     if name == "connors_rsi2":
         move = (c.iloc[-1] / c.iloc[-4] - 1) * 100
+        r2 = rsi(c, 2).iloc[-1]
         return (f"Still in a long-term uptrend (above its 200-day average), but "
                 f"{'dropped' if move < 0 else 'moved'} {abs(move):.1f}% over the last 3 days. "
-                f"Its short-term RSI is {rsi(c, 2).iloc[-1]:.0f} out of 100, which is extremely low.")
+                f"Its short-term RSI is {'under 1' if r2 < 1 else f'{r2:.0f}'} out of 100, which is extremely low.")
     if name == "ibs_reversion":
         v = ibs(panel.high[asset], panel.low[asset], c).iloc[-1]
         return (f"In an uptrend, but closed in the bottom {v * 100:.0f}% of today's price range, "

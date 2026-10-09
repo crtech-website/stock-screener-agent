@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pandas as pd
+import requests
 
 from .http import RateLimitedClient
 from .panel import Panel
@@ -128,16 +129,25 @@ def update_history(client, cfg, now=None):
         if counts.get(coin, 0) < 30:
             jobs.append((coin, c["history_days"]))
         else:
+            # gap 1 = yesterday's close is stored. CoinGecko publishes it about 35 minutes after
+            # 00:00 UTC, which is why the nightly scan runs at 00:45 UTC.
             gap = (now.date() - pd.Timestamp(last_seen[coin]).date()).days
-            if gap > 2:
-                jobs.append((coin, min(c["history_days"], gap + 2)))
+            if gap >= 2:
+                jobs.append((coin, min(c["history_days"], gap + 1)))
     jobs = jobs[: c["max_backfill_per_run"]]
     log.info("crypto: %d coins above floor, %d liquid, %d history fetches", len(markets), len(liquid), len(jobs))
 
-    fetched = [daily_history(client, coin, days) for coin, days in jobs]
+    fetched = []
+    for coin, days in jobs:
+        try:
+            fetched.append(daily_history(client, coin, days))
+        except requests.RequestException as e:
+            # One coin failing (rate limit, delisting) shouldn't sink the night; it's retried next run.
+            log.warning("crypto: history for %s failed (%s); will retry next run", coin, e)
 
-    # A run just after 00:00 UTC sees yesterday's close in /coins/markets, so it can be stored
-    # without a per-coin call. Runs at other hours get a provisional bar that isn't saved.
+    # Fallback for a coin whose history call didn't include yesterday yet: a run soon after
+    # 00:00 UTC stores the current price as yesterday's close. Fetched closes win over it.
+    # Runs at other hours keep the current price only for display.
     snap = liquid[["id", "current_price", "market_cap", "total_volume"]].rename(
         columns={"current_price": "close", "total_volume": "volume"})
     parts = list(fetched)

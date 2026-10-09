@@ -215,6 +215,16 @@ def review_candidates(candidates, market, cfg):
 
 
 def _facts(c, sec, news, tvl, ck):
+    try:
+        return _gather(c, sec, news, tvl, ck)
+    except (requests.RequestException, ValueError, KeyError) as e:
+        # A data source being down shouldn't drop the pick or crash the scan; say so instead.
+        log.warning("checks for %s failed: %s", c["symbol"], e)
+        return {"flags": ["background checks unavailable tonight"], "severe": [], "headlines": [],
+                "news_severe": [], "news_warnings": []}
+
+
+def _gather(c, sec, news, tvl, ck):
     f = {"flags": [], "severe": []}
     if sec:
         s = sec.review(c["symbol"])

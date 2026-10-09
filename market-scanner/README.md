@@ -62,7 +62,7 @@ The scanner is set up for trading on Robinhood:
 - **Coins:** crypto is limited to the 92 coins in `robinhood_crypto.txt`. Edit that file when Robinhood adds or removes a coin, or delete it to scan everything.
 - **Buy price:** the buy limit is set about 1% above the close for crypto, so the order can actually fill at Robinhood's buy price.
 - **Picks file:** each scan saves tonight's picks to `ledger/latest-crypto.json` and `ledger/latest-stocks.json`.
-- **Nightly Robinhood check (9:18 PM New York time):** a Claude scheduled task reads those files and checks each pick against live Robinhood prices. It skips picks that aren't on Robinhood, whose price has already run more than 2% past the buy price, that are already below the stop, or whose buy/sell gap is too wide. For the rest, it adds them to a Robinhood watchlist called "Scanner picks" and sets price alerts at the stop and take-profit. It never places orders.
+- **Market scanner agent (Claude scheduled task, 9:48 PM New York time, or Run now any time):** reads those files and checks each pick against live Robinhood prices. It skips picks that aren't on Robinhood, whose price has already run more than 2% past the buy price, that are already below the stop, or whose buy/sell gap is too wide. For the rest, it adds them to a Robinhood watchlist called "Scanner picks" and sets price alerts at the stop and take-profit. When a plan's time limit passes it turns those alerts off (it never deletes anything). It never places orders, and it never touches your other alerts or watchlists.
 
 ## Setup
 
@@ -81,9 +81,9 @@ The scanner is set up for trading on Robinhood:
 | `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID`, or `DISCORD_WEBHOOK_URL` | alerts |
 | `GROQ_API_KEY` or `GEMINI_API_KEY` or `OPENROUTER_API_KEY` | only if you turn on the LLM review |
 
-4. Actions tab > Stock scan > Run workflow. Do this three or four times on day one: each run backfills about 150 trading days (30 minutes, because the free plan allows 5 calls a minute), and the 200-day and 52-week strategies switch on once there's enough history. After that, a daily run needs one data call and takes a few minutes. Crypto backfills 100 coins per run and fills in after two or three runs.
+4. Actions tab > Stock scan > Run workflow. Do this three or four times on day one: each run backfills about 120 trading days (about 25 minutes, because the free plan allows 5 calls a minute), and the 200-day and 52-week strategies switch on once there's enough history. After that, a daily run needs one data call and takes a few minutes. Crypto backfills 100 coins per run and fills in after two or three runs.
 
-Schedules: stocks at 22:35 UTC on weekdays, crypto at 00:15 UTC daily (right after the daily close), scorecard on Saturdays. Each run also uploads the full backtest report and every candidate's details as a run artifact.
+Schedules: stocks at 22:35 UTC on weekdays (after the US close), crypto at 00:45 UTC daily (CoinGecko publishes each day's official close about 35 minutes after midnight UTC), the Robinhood agent at 9:48 PM New York time, scorecard on Saturdays. Until enough history is loaded, the alert lists which strategies are still waiting for data. Each run also uploads the full backtest report and every candidate's details as a run artifact.
 
 ## Optional LLM review
 

@@ -7,6 +7,7 @@ from pathlib import Path
 import yaml
 
 from . import alerts, backtest, data_crypto, data_stocks, ledger, scan
+from .strategies import loading
 
 log = logging.getLogger("scanner")
 DATA = {"stocks": data_stocks, "crypto": data_crypto}
@@ -42,14 +43,15 @@ def cmd_scan(args, cfg, out):
     picks = scan.pick(cands, cfg)
     (out / f"{args.market}-candidates.json").write_text(json.dumps(cands, indent=1, default=str))
     months = round(len(panel.close) / (21 if args.market == "stocks" else 30.4))
+    held, waiting = scan.held_back(report, cfg), loading(cfg, panel)
     text = alerts.format_alert(args.market, picks, bool(panel.regime.iloc[-1]), now, cfg,
-                               months=months, as_of=panel.last_date, held_back=scan.held_back(report, cfg))
+                               months=months, as_of=panel.last_date, held_back=held, loading=waiting)
     print(text)
 
     if not args.no_ledger:
         ledger.append(args.market, picks)
         ledger.write_latest(args.market, picks, report, now, cfg, bool(panel.regime.iloc[-1]),
-                            held_back=scan.held_back(report, cfg))
+                            held_back=held, loading=waiting)
     if not args.no_alert and (any(picks.values()) or cfg["alerts"]["send_when_empty"]):
         alerts.send(text)
 

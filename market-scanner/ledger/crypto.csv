@@ -1,3 +1,5 @@
-as_of,logged_utc,strategy,id,symbol,price,score,llm_verdict,n_flags
-2026-10-09,2026-10-09 03:49,connors_rsi2,bitget-token,BGB,1.93,3.224,,0
-2026-10-09,2026-10-09 03:49,trend_breakout,starknet,STRK,0.064953,5.7641,,0
+as_of,logged_utc,strategy,id,symbol,price,score,llm_verdict,n_flags,entry,stop,target,hold
+2026-10-09,2026-10-09 03:49,connors_rsi2,bitget-token,BGB,1.93,3.224,,0,,,,
+2026-10-09,2026-10-09 03:49,trend_breakout,starknet,STRK,0.064953,5.7641,,0,,,,
+2026-10-09,2026-10-09 04:28,trend_breakout,wormhole,W,,,,1,0.01616574,0.014921898548279206,0.018653422903441592,20.0
+2026-10-09,2026-10-09 04:28,trend_breakout,raydium,RAY,,,,0,2.5,2.284021813036451,2.9319563739270977,20.0

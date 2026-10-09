@@ -20,7 +20,7 @@ def run(panel, cfg):
     for strat, prm in active_strategies(cfg, panel):
         entry = {"label": strat.label, "hold": prm["hold"], "regime": prm["regime"], "variants": {}}
         for variant, use_regime in (("no_regime", False), ("with_regime", True)):
-            sig, _ = signals(strat, prm, panel, use_regime=use_regime)
+            sig, _ = signals(strat, prm, panel, use_regime=use_regime, cfg=cfg)
             trades = plan.backtest_signals(panel, sig, prm, cfg, arrays=arrays, mkt_cache=mkt_cache)
             entry["variants"][variant] = plan.summarize(trades, prm["hold"], cfg)
         entry["headline"] = entry["variants"]["with_regime" if prm["regime"] else "no_regime"]

@@ -32,7 +32,7 @@ def candidates(panel, cfg, report):
         if cfg["alerts"]["skip_losing_strategies"] and entry and entry["headline"].get("verdict") in HOLD_BACK:
             log.info("%s skipped: lost money in the backtest", strat.name)
             continue
-        sig, score = signals(strat, prm, panel)
+        sig, score = signals(strat, prm, panel, cfg=cfg)
         today = sig.iloc[-1]
         hits = score.iloc[-1][today[today].index].sort_values(ascending=False)
         log.info("%s: %d signals today", strat.name, len(hits))
@@ -78,6 +78,10 @@ def candidates(panel, cfg, report):
 def pick(cands, cfg, extra=0):
     """Top picks per strategy after checks, dropping anything the LLM called structural."""
     by_strategy = {}
+    # A pick with alarming news (lawsuit, safety recall, fraud) goes to the back of its queue unless the
+    # LLM read the story and called the drop an overreaction. Without an LLM, a clean pick wins the slot.
+    cands = sorted(cands, key=lambda c: bool(c.get("news_severe"))
+                   and c.get("llm", {}).get("verdict") != "overreaction")
     for c in cands:
         if c.get("llm", {}).get("verdict") == "structural":
             continue

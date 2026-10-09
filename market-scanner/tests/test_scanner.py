@@ -618,3 +618,27 @@ def test_quiet_night_message_is_short():
                                as_of="2026-10-09", held_back=["Momentum leaders"])
     assert "No trade ideas passed" in text and "ran normally" in text and "HOW TO PLACE" not in text
     assert "Momentum leaders" in text and len(text) < 600
+
+
+def test_pinned_stocks_get_no_signals():
+    from scanner.strategies import lively
+    p = random_panel()
+    # A buyout target: the price barely moves, so any plan on it would be a few cents wide.
+    p.close["A0"] = 33.4 + np.tile([0.0, 0.03], len(p.close) // 2)
+    p.high["A0"], p.low["A0"] = p.close["A0"] * 1.001, p.close["A0"] * 0.999
+    ok = lively(p, CFG)
+    assert not ok["A0"].iloc[-1] and ok.drop(columns="A0").iloc[-1].all()
+    for strat, prm in active_strategies(CFG, p):
+        sig, _ = signals(strat, prm, p, cfg=CFG)
+        assert not sig["A0"].any()
+
+
+def test_alarming_news_loses_its_slot_to_a_clean_pick():
+    cfg = {**CFG, "alerts": {**CFG["alerts"], "picks_per_strategy": 2}}
+    cands = [{"strategy": "s", "id": "BAD", "news_severe": ["Stock plunged 37% after safety issues"]},
+             {"strategy": "s", "id": "OK1", "news_severe": []},
+             {"strategy": "s", "id": "OK2"},
+             {"strategy": "s", "id": "LLM", "news_severe": ["lawsuit"], "llm": {"verdict": "overreaction"}}]
+    assert [c["id"] for c in scan.pick(cands, cfg)["s"]] == ["OK1", "OK2"]
+    only_bad = [cands[0]]
+    assert [c["id"] for c in scan.pick(only_bad, cfg)["s"]] == ["BAD"]

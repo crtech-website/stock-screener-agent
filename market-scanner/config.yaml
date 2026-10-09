@@ -90,6 +90,7 @@ strategies:
 
 trading:
   atr_period: 14
+  min_daily_move_pct: 0.75   # skip assets whose typical daily move (ATR) is under this % of price, e.g. buyout targets
   max_stop_pct: 25           # never place a stop more than this % below the buy price
   risk_per_trade_pct: 1      # position size is set so a stop-out loses this % of the account
   max_position_pct: 20       # and never more than this % of the account in one trade

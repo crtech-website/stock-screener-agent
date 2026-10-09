@@ -125,9 +125,21 @@ def loading(cfg, panel):
     return out
 
 
-def signals(strat, prm, panel, use_regime=None):
+def lively(panel, cfg):
+    """Assets that move enough to trade. A stock pinned by a pending buyout moves a few cents a day,
+    which gives a stop and target so close together that costs and noise decide the trade."""
+    if getattr(panel, "_lively", None) is None:
+        from .plan import atr
+        t = cfg["trading"]
+        panel._lively = (atr(panel, t["atr_period"]) / panel.close * 100) >= t.get("min_daily_move_pct", 0)
+    return panel._lively
+
+
+def signals(strat, prm, panel, use_regime=None, cfg=None):
     sig, score = strat.build(panel, prm)
     sig = sig.fillna(False).astype(bool) & panel.tradable
+    if cfg is not None:
+        sig &= lively(panel, cfg)
     if prm["regime"] if use_regime is None else use_regime:
         sig = sig.mul(panel.regime, axis=0).astype(bool)
     return sig, score

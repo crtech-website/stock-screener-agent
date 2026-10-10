@@ -642,3 +642,24 @@ def test_alarming_news_loses_its_slot_to_a_clean_pick():
     assert [c["id"] for c in scan.pick(cands, cfg)["s"]] == ["OK1", "OK2"]
     only_bad = [cands[0]]
     assert [c["id"] for c in scan.pick(only_bad, cfg)["s"]] == ["BAD"]
+
+
+def test_news_outage_stops_searching_and_is_flagged(monkeypatch):
+    import requests
+
+    calls = []
+
+    def refuse(self, path, params=None):
+        calls.append(path)
+        raise requests.HTTPError("503 Service Unavailable")
+
+    class NoSec:
+        def review(self, t):
+            return {"severe": [], "warnings": [], "insider_buys": 0, "insider_buy_usd": 0}
+
+    monkeypatch.setattr(checks, "SecChecks", NoSec)
+    monkeypatch.setattr(checks.RateLimitedClient, "get_text", refuse)
+    cands = [{"id": t, "symbol": t, "strategy": "s", "name_only": f"{t} Co"} for t in ("A", "B", "C")]
+    kept = checks.review_candidates(cands, "stocks", CFG)
+    assert len(calls) == 1
+    assert len(kept) == 3 and all(c["flags"][0].startswith("news check unavailable") for c in kept)

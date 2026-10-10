@@ -107,14 +107,23 @@ class SecChecks:
 
 class NewsChecks:
     def __init__(self):
-        self.client = RateLimitedClient(calls_per_minute=30, headers={"User-Agent": "Mozilla/5.0"})
+        self.client = RateLimitedClient(calls_per_minute=30, headers={"User-Agent": "Mozilla/5.0"}, retries=2)
+        self.down = False
 
     def headlines(self, query, limit=5, days=7):
         url = (f"https://news.google.com/rss/search?q={quote_plus(query)}+when:{days}d"
                "&hl=en-US&gl=US&ceid=US:en")
+        # Once Google News starts refusing, every later search fails too, and waiting out the retries
+        # for each candidate ran a scan past an hour. Stop asking for the rest of the run.
+        if self.down:
+            return None
         try:
             root = ET.fromstring(self.client.get_text(url))
-        except (requests.HTTPError, ET.ParseError):
+        except requests.RequestException as e:
+            log.warning("news search unavailable (%s); skipping news for the rest of this run", e)
+            self.down = True
+            return None
+        except ET.ParseError:
             return []
         items = []
         for it in root.iter("item"):
@@ -129,6 +138,8 @@ class NewsChecks:
 
     def review(self, query, limit, must_mention=()):
         heads = self.headlines(query, limit=limit * 4)
+        if heads is None:
+            return {"headlines": [], "news_severe": [], "news_warnings": [], "news_down": True}
         heads = [h for h in heads if not JUNK_NEWS.search(h["title"])]
         if must_mention:
             heads = [h for h in heads if mentions(h["title"], must_mention)]
@@ -248,4 +259,7 @@ def _gather(c, sec, news, tvl, ck):
     f.update(n)
     f["flags"] += [f"news: {h}" for h in n["news_warnings"][:2]]
     f["flags"] += [f"NEWS RED FLAG: {h}" for h in n["news_severe"][:2]]
+    if n.get("news_down"):
+        # No news is not good news here: say so, so a stock with a scandal doesn't look clean.
+        f["flags"].insert(0, "news check unavailable tonight: read the latest headlines yourself before buying")
     return f

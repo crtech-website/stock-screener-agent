@@ -23,6 +23,10 @@ jobs:
     timeout-minutes: 75
     steps:
       - uses: actions/checkout@v7
+        with:
+          # A queued run must start from the ledger the previous run just committed, not from the
+          # commit that was current when it was queued, or its own commit conflicts.
+          ref: ${{ github.ref_name }}
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"

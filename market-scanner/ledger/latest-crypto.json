@@ -1,7 +1,7 @@
 {
  "market": "crypto",
- "generated_utc": "2026-10-10T01:36:34Z",
- "generated_new_york": "Friday, Oct 9, 2026, 9:36 PM New York time",
+ "generated_utc": "2026-10-10T06:22:48Z",
+ "generated_new_york": "Saturday, Oct 10, 2026, 2:22 AM New York time",
  "as_of": "2026-10-09",
  "prices_from": "the Oct 9 daily close (Oct 9, 8:00 PM New York time)",
  "market_mood": "Bitcoin is above its 200-day average: the overall market is in an uptrend.",
@@ -83,7 +83,7 @@
    "hold_days": 20,
    "position_pct": 8.5,
    "warnings": [],
-   "latest_headline": "STRK token jumps 30% amid Starknet's possible s... - Pluang"
+   "latest_headline": "Best Crypto To Invest In: Starknet Surges 39% as $2.9M Presale AlphaPepe Builds Toward Its First Listing - TechBullion"
   },
   {
    "strategy": "trend_breakout",

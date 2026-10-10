@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write   # to commit the ledger and tonight's picks file
+  contents: write   # to commit the ledger and the latest picks file
 
 concurrency:
   group: crypto-scan

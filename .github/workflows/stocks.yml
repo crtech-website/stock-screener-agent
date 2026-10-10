@@ -2,12 +2,14 @@ name: Stock scan
 
 on:
   schedule:
-    # 22:35 UTC on weekdays is after the US close in both summer and winter time.
-    - cron: "35 22 * * 1-5"
+    # 08:37 UTC on weekdays: 4:37 AM New York in summer, 3:37 AM in winter. The free data plan only
+    # publishes a day's closing prices the next morning, and GitHub can start a scheduled run hours
+    # late, so this leaves room to finish before the 7:56 AM Robinhood agent.
+    - cron: "37 8 * * 1-5"
   workflow_dispatch:
 
 permissions:
-  contents: write   # to commit the ledger and tonight's picks file
+  contents: write   # to commit the ledger and the latest picks file
 
 concurrency:
   group: stocks-scan

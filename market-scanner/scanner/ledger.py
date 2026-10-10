@@ -92,7 +92,7 @@ def scorecard(market, panel, cfg):
 
 
 def write_latest(market, picks_by_strategy, report, when, cfg, regime_on, held_back=(), loading=()):
-    """Tonight's full report in machine-readable form, read by the Claude agent that checks Robinhood.
+    """The latest scan's full report in machine-readable form, read by the Claude agent that checks Robinhood.
 
     It carries everything the Telegram alert shows, so the agent can give the complete
     plain-English report together with live Robinhood prices.

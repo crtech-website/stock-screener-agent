@@ -232,7 +232,7 @@ def _facts(c, sec, news, tvl, ck):
     except (requests.RequestException, ValueError, KeyError) as e:
         # A data source being down shouldn't drop the pick or crash the scan; say so instead.
         log.warning("checks for %s failed: %s", c["symbol"], e)
-        return {"flags": ["background checks unavailable tonight"], "severe": [], "headlines": [],
+        return {"flags": ["background checks unavailable for this scan"], "severe": [], "headlines": [],
                 "news_severe": [], "news_warnings": []}
 
 
@@ -261,5 +261,5 @@ def _gather(c, sec, news, tvl, ck):
     f["flags"] += [f"NEWS RED FLAG: {h}" for h in n["news_severe"][:2]]
     if n.get("news_down"):
         # No news is not good news here: say so, so a stock with a scandal doesn't look clean.
-        f["flags"].insert(0, "news check unavailable tonight: read the latest headlines yourself before buying")
+        f["flags"].insert(0, "news check unavailable for this scan: read the latest headlines yourself before buying")
     return f

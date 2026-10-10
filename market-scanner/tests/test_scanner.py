@@ -573,7 +573,7 @@ def test_checks_and_alerts_survive_outages(monkeypatch):
 
     monkeypatch.setattr(checks, "SecChecks", DownSec)
     kept = checks.review_candidates([{"id": "A", "symbol": "A", "strategy": "s", "name_only": "A Co"}], "stocks", CFG)
-    assert kept and "background checks unavailable tonight" in kept[0]["flags"]
+    assert kept and "background checks unavailable for this scan" in kept[0]["flags"]
 
     monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "x")
     monkeypatch.setenv("TELEGRAM_CHAT_ID", "y")

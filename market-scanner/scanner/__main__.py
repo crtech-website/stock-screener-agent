@@ -93,6 +93,11 @@ def cmd_scorecard(args, cfg, out):
         alerts.send(text)
 
 
+def cmd_monitor(args, cfg, out):
+    from . import monitor
+    monitor.run(cfg, data_crypto.client_from_env(cfg))
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(prog="scanner", description="Free two-tier market scanner")
     parser.add_argument("--config", default="config.yaml")
@@ -115,6 +120,9 @@ def main(argv=None):
     p.add_argument("market", choices=DATA)
     p.add_argument("--send", action="store_true")
     p.set_defaults(func=cmd_scorecard)
+
+    p = sub.add_parser("monitor", help="check EMA, Bollinger Bands, RSI and MACD on open crypto plans")
+    p.set_defaults(func=cmd_monitor)
 
     args = parser.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(message)s")

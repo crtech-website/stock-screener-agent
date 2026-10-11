@@ -663,3 +663,101 @@ def test_news_outage_stops_searching_and_is_flagged(monkeypatch):
     kept = checks.review_candidates(cands, "stocks", CFG)
     assert len(calls) == 1
     assert len(kept) == 3 and all(c["flags"][0].startswith("news check unavailable") for c in kept)
+
+
+# ---------- crypto watch ----------
+
+def test_ema_macd_bollinger_basics():
+    from scanner.indicators import bollinger, ema, macd
+    flat = pd.Series([5.0] * 60)
+    line, sig, hist = macd(flat)
+    assert line.dropna().abs().max() == 0 and hist.dropna().abs().max() == 0
+    mid, up, lo = bollinger(flat)
+    assert (up.dropna() == 5).all() and (lo.dropna() == 5).all()
+    rising = pd.Series(np.arange(1.0, 61.0))
+    assert ema(rising, 10).iloc[-1] < rising.iloc[-1] and ema(rising, 10).iloc[-1] > ema(rising, 30).iloc[-1]
+    assert line.dropna().size and macd(rising)[0].iloc[-1] > 0
+
+
+def _hourly(now, days=40, seed=1):
+    rng = np.random.default_rng(seed)
+    idx = pd.date_range(end=now, periods=days * 24, freq="h", tz="UTC") - pd.Timedelta(minutes=3)
+    return pd.Series(1.0 * np.exp(np.cumsum(rng.normal(0.0002, 0.01, len(idx)))), index=idx)
+
+
+def test_candles_leave_out_the_unfinished_one():
+    from scanner import monitor
+    now = pd.Timestamp("2026-10-11 14:30", tz="UTC")
+    c = monitor.candles(_hourly(now), now, 4)
+    assert c.index[-1] == pd.Timestamp("2026-10-11 12:00", tz="UTC")
+    assert (c.index.hour % 4 == 0).all()
+
+
+def test_plan_status_first_level_touched_wins():
+    from scanner import monitor
+    idx = pd.date_range("2026-10-10", periods=6, freq="h", tz="UTC")
+    p = {"start": idx[0], "end": idx[0] + pd.Timedelta(days=20), "entry": 1.0, "stop": 0.9, "target": 1.2}
+    now = idx[-1]
+    assert monitor.plan_status(p, pd.Series([1.0, 1.05, 0.89, 1.25, 1.3, 1.3], index=idx), now, 0.0)["reason"] == "stop"
+    done = monitor.plan_status(p, pd.Series([0.98, 1.21, 0.8, 1.0, 1.0, 1.0], index=idx), now, 0.01)
+    assert done["reason"] == "target" and done["result"] == pytest.approx(1.2 * 0.99 / (0.98 * 1.01) - 1)
+    assert monitor.plan_status(p, pd.Series([1.0] * 6, index=idx), now, 0.0) is None
+    late = {**p, "end": idx[3]}
+    assert monitor.plan_status(late, pd.Series([1.0, 1.0, 1.1, 1.1, 1.0, 1.0], index=idx), now, 0.0)["reason"] == "time"
+    # Bought below the limit: the result counts from the actual fill, not the limit price.
+    cheap = monitor.plan_status(p, pd.Series([0.95, 1.2, 1.2, 1.2, 1.2, 1.2], index=idx), now, 0.0)
+    assert cheap["result"] == pytest.approx(1.2 / 0.95 - 1)
+    assert monitor.plan_status(p, pd.Series([0.85] * 6, index=idx), now, 0.0)["reason"] == "below_stop"
+    day2 = idx[0] + pd.Timedelta(days=1, hours=1)
+    pricey = pd.Series([1.1, 1.1, 1.15], index=[idx[0], idx[1], day2])
+    assert monitor.plan_status(p, pricey, day2, 0.0)["reason"] == "unfilled"
+    assert monitor.plan_status(p, pricey.iloc[:2], idx[1], 0.0) is None
+
+
+def test_changes_spot_crossovers():
+    from scanner import monitor
+    r = pd.DataFrame({"close": [10.0, 9.0], "e20": [9.5, 9.5], "e50": [9.0, 9.6], "rsi": [72.0, 65.0],
+                      "up": [10.5, 10.5], "lo": [8.0, 8.0], "macd": [0.2, 0.1], "sig": [0.1, 0.15]})
+    text = " ".join(monitor.changes(r))
+    for bit in ("MACD turned down", "RSI fell back below 70", "fell below its 20-candle average",
+                "EMA20 crossed below EMA50"):
+        assert bit in text
+    assert monitor.changes(pd.concat([r.iloc[[1]], r.iloc[[1]]])) == []
+
+
+def test_monitor_run_watches_reports_once_and_finishes(tmp_path, monkeypatch):
+    from scanner import monitor
+    monkeypatch.setenv("SCANNER_CACHE", str(tmp_path / "cache"))
+    monkeypatch.setenv("SCANNER_LEDGER", str(tmp_path / "ledger"))
+    (tmp_path / "ledger").mkdir()
+    now = pd.Timestamp("2026-10-11 16:07", tz="UTC").to_pydatetime()
+    prices = _hourly(pd.Timestamp(now))
+    pd.DataFrame([
+        {"as_of": "2026-10-09", "strategy": "trend_breakout", "id": "coin-a", "symbol": "AAA",
+         "entry": 100.0, "stop": prices.min() * 0.5, "target": prices.max() * 2, "hold": 20},
+        {"as_of": "2026-10-09", "strategy": "trend_breakout", "id": "coin-b", "symbol": "BBB",
+         "entry": 100.0, "stop": 0.01, "target": 0.000001 + prices[prices.index >= "2026-10-10"].min(), "hold": 20},
+        {"as_of": "2026-08-01", "strategy": "trend_breakout", "id": "old", "symbol": "OLD",
+         "entry": 1.0, "stop": 0.5, "target": 2.0, "hold": 5},
+        {"as_of": "2026-10-09", "strategy": "connors_rsi2", "id": "noplan", "symbol": "NOP"},
+    ]).to_csv(tmp_path / "ledger" / "crypto.csv", index=False)
+
+    calls = []
+
+    class Fake:
+        def get(self, path, params=None):
+            calls.append(path)
+            ts = prices.index.as_unit("ms").astype("int64").tolist()
+            return {"prices": [[t, p] for t, p in zip(ts, prices.tolist())]}
+
+    monkeypatch.setattr(monitor.alerts, "send", lambda text: True)
+    first = monitor.run(CFG, Fake(), now=now)
+    assert "AAA" in first and "Now watching" in first and "Trend:" in first and "RSI:" in first
+    assert "BBB: PLAN FINISHED" in first and "reached its take profit" in first
+    assert "OLD" not in first and "NOP" not in first
+    assert sorted(calls) == ["/coins/coin-a/market_chart", "/coins/coin-b/market_chart"]
+
+    # Same candle again: nothing new to say, and the finished plan isn't fetched any more.
+    calls.clear()
+    assert monitor.run(CFG, Fake(), now=now) is None
+    assert calls == ["/coins/coin-a/market_chart"]

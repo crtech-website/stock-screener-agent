@@ -23,3 +23,22 @@ def ibs(high, low, close):
 
 def pct_change(close, bars):
     return (close / close.shift(bars) - 1) * 100
+
+
+def ema(x, n):
+    return x.ewm(span=n, adjust=False, min_periods=n).mean()
+
+
+def macd(close, fast=12, slow=26, signal=9):
+    """MACD line, signal line and histogram, with the standard 12/26/9 settings."""
+    line = ema(close, fast) - ema(close, slow)
+    sig = line.ewm(span=signal, adjust=False, min_periods=signal).mean()
+    return line, sig, line - sig
+
+
+def bollinger(close, n=20, k=2.0):
+    """Middle band (n-bar average) and the bands k standard deviations above and below it."""
+    mid = sma(close, n)
+    # Population standard deviation, as TradingView and most charting tools draw the bands.
+    sd = close.rolling(n, min_periods=n).std(ddof=0)
+    return mid, mid + k * sd, mid - k * sd

@@ -1,12 +1,14 @@
 {
  "market": "crypto",
- "generated_utc": "2026-10-11T06:28:26Z",
- "generated_new_york": "Sunday, Oct 11, 2026, 2:28 AM New York time",
- "as_of": "2026-10-10",
- "prices_from": "the Oct 10 daily close (Oct 10, 8:00 PM New York time)",
+ "generated_utc": "2026-10-12T06:33:08Z",
+ "generated_new_york": "Monday, Oct 12, 2026, 2:33 AM New York time",
+ "as_of": "2026-10-11",
+ "prices_from": "the Oct 11 daily close (Oct 11, 8:00 PM New York time)",
  "market_mood": "Bitcoin is above its 200-day average: the overall market is in an uptrend.",
  "held_back": [
+  "Oversold bounce",
   "Connors RSI(2) pullback",
+  "Trend breakout",
   "Momentum leaders"
  ],
  "loading": [],
@@ -16,37 +18,37 @@
    "label": "Oversold bounce",
    "hold_days": 5,
    "market_filter": false,
-   "verdict": "unproven",
-   "past_trades": 135,
-   "win_rate_pct": 72.59,
+   "verdict": "lagging",
+   "past_trades": 137,
+   "win_rate_pct": 71.53,
    "avg_win_pct": 8.55,
-   "avg_loss_pct": -9.17,
-   "avg_per_trade_pct": 3.69,
-   "market_same_days_pct": 6.48
+   "avg_loss_pct": -9.05,
+   "avg_per_trade_pct": 3.54,
+   "market_same_days_pct": 6.37
   },
   "connors_rsi2": {
    "label": "Connors RSI(2) pullback",
    "hold_days": 5,
    "market_filter": false,
    "verdict": "losing",
-   "past_trades": 103,
-   "win_rate_pct": 43.69,
+   "past_trades": 104,
+   "win_rate_pct": 43.27,
    "avg_win_pct": 3.86,
-   "avg_loss_pct": -7.55,
-   "avg_per_trade_pct": -2.56,
-   "market_same_days_pct": -0.0
+   "avg_loss_pct": -7.74,
+   "avg_per_trade_pct": -2.72,
+   "market_same_days_pct": -0.12
   },
   "trend_breakout": {
    "label": "Trend breakout",
    "hold_days": 20,
    "market_filter": true,
-   "verdict": "unproven",
-   "past_trades": 38,
-   "win_rate_pct": 52.63,
-   "avg_win_pct": 13.6,
-   "avg_loss_pct": -11.58,
-   "avg_per_trade_pct": 1.67,
-   "market_same_days_pct": 5.53
+   "verdict": "losing",
+   "past_trades": 52,
+   "win_rate_pct": 46.15,
+   "avg_win_pct": 13.08,
+   "avg_loss_pct": -11.38,
+   "avg_per_trade_pct": -0.09,
+   "market_same_days_pct": 4.99
   },
   "momentum": {
    "label": "Momentum leaders",
@@ -58,32 +60,8 @@
    "avg_win_pct": 10.29,
    "avg_loss_pct": -10.98,
    "avg_per_trade_pct": -2.83,
-   "market_same_days_pct": 0.17
+   "market_same_days_pct": 0.16
   }
  },
- "picks": [
-  {
-   "strategy": "trend_breakout",
-   "strategy_label": "Trend breakout",
-   "what_it_does": "Buys a coin that is already rising and just hit its highest price in 55 days with heavy buying. The bet is that strength keeps going. It wins less often, but the wins are meant to be about twice the size of the losses.",
-   "why_picked": "Hit its highest price in 55 days today, on 1.9x its normal trading volume, and its moving averages all point up.",
-   "verdict": "unproven",
-   "symbol": "AERO",
-   "id": "aerodrome-finance",
-   "name": "Aerodrome Finance",
-   "market_cap": 944631831.0898349,
-   "change_1d_pct": 17.6,
-   "change_5d_pct": 11.2,
-   "change_20d_pct": 42.8,
-   "as_of": "2026-10-10",
-   "close": 0.94030989,
-   "limit_buy": 0.94924283,
-   "stop": 0.86677939,
-   "target": 1.08737089,
-   "hold_days": 20,
-   "position_pct": 11.5,
-   "warnings": [],
-   "latest_headline": "Aerodrome and Velodrome to merge into one cross-chain exchange, tokens jump over 16% ahead of Oct 21 launch - Pluang"
-  }
- ]
+ "picks": []
 }

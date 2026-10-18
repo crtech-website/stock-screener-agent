@@ -1,9 +1,9 @@
 {
  "market": "crypto",
- "generated_utc": "2026-10-17T05:01:25Z",
- "generated_new_york": "Saturday, Oct 17, 2026, 1:01 AM New York time",
- "as_of": "2026-10-16",
- "prices_from": "the Oct 16 daily close (Oct 16, 8:00 PM New York time)",
+ "generated_utc": "2026-10-18T05:09:14Z",
+ "generated_new_york": "Sunday, Oct 18, 2026, 1:09 AM New York time",
+ "as_of": "2026-10-17",
+ "prices_from": "the Oct 17 daily close (Oct 17, 8:00 PM New York time)",
  "market_mood": "Bitcoin is above its 200-day average: the overall market is in an uptrend.",
  "held_back": [
   "Connors RSI(2) pullback",
@@ -18,12 +18,12 @@
    "hold_days": 5,
    "market_filter": false,
    "verdict": "unproven",
-   "past_trades": 72,
-   "win_rate_pct": 66.67,
-   "avg_win_pct": 6.78,
-   "avg_loss_pct": -9.01,
-   "avg_per_trade_pct": 1.52,
-   "market_same_days_pct": 4.2
+   "past_trades": 127,
+   "win_rate_pct": 75.59,
+   "avg_win_pct": 6.34,
+   "avg_loss_pct": -9.41,
+   "avg_per_trade_pct": 2.5,
+   "market_same_days_pct": 6.93
   },
   "connors_rsi2": {
    "label": "Connors RSI(2) pullback",
@@ -42,12 +42,12 @@
    "hold_days": 20,
    "market_filter": true,
    "verdict": "losing",
-   "past_trades": 73,
-   "win_rate_pct": 39.73,
+   "past_trades": 78,
+   "win_rate_pct": 37.18,
    "avg_win_pct": 12.81,
-   "avg_loss_pct": -11.44,
-   "avg_per_trade_pct": -1.81,
-   "market_same_days_pct": 3.37
+   "avg_loss_pct": -11.57,
+   "avg_per_trade_pct": -2.5,
+   "market_same_days_pct": 2.88
   },
   "momentum": {
    "label": "Momentum leaders",

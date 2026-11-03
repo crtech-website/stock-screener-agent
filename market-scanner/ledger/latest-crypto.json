@@ -1,9 +1,9 @@
 {
  "market": "crypto",
- "generated_utc": "2026-11-02T06:50:47Z",
- "generated_new_york": "Monday, Nov 2, 2026, 1:50 AM New York time",
- "as_of": "2026-11-01",
- "prices_from": "the Nov 1 daily close (Nov 1, 7:00 PM New York time)",
+ "generated_utc": "2026-11-03T07:16:50Z",
+ "generated_new_york": "Tuesday, Nov 3, 2026, 2:16 AM New York time",
+ "as_of": "2026-11-02",
+ "prices_from": "the Nov 2 daily close (Nov 2, 7:00 PM New York time)",
  "market_mood": "Bitcoin is above its 200-day average: the overall market is in an uptrend.",
  "held_back": [
   "Connors RSI(2) pullback",
@@ -18,36 +18,36 @@
    "hold_days": 5,
    "market_filter": false,
    "verdict": "unproven",
-   "past_trades": 73,
-   "win_rate_pct": 64.38,
+   "past_trades": 88,
+   "win_rate_pct": 63.64,
    "avg_win_pct": 6.56,
-   "avg_loss_pct": -9.49,
-   "avg_per_trade_pct": 0.84,
-   "market_same_days_pct": 3.22
+   "avg_loss_pct": -9.15,
+   "avg_per_trade_pct": 0.85,
+   "market_same_days_pct": 3.02
   },
   "connors_rsi2": {
    "label": "Connors RSI(2) pullback",
    "hold_days": 5,
    "market_filter": false,
    "verdict": "losing",
-   "past_trades": 195,
-   "win_rate_pct": 36.92,
+   "past_trades": 197,
+   "win_rate_pct": 36.55,
    "avg_win_pct": 3.85,
-   "avg_loss_pct": -7.32,
-   "avg_per_trade_pct": -3.2,
-   "market_same_days_pct": -0.27
+   "avg_loss_pct": -7.52,
+   "avg_per_trade_pct": -3.36,
+   "market_same_days_pct": -0.4
   },
   "trend_breakout": {
    "label": "Trend breakout",
    "hold_days": 20,
    "market_filter": true,
    "verdict": "losing",
-   "past_trades": 102,
-   "win_rate_pct": 34.31,
+   "past_trades": 104,
+   "win_rate_pct": 33.65,
    "avg_win_pct": 13.02,
-   "avg_loss_pct": -11.71,
-   "avg_per_trade_pct": -3.22,
-   "market_same_days_pct": 1.31
+   "avg_loss_pct": -11.77,
+   "avg_per_trade_pct": -3.43,
+   "market_same_days_pct": 1.22
   },
   "momentum": {
    "label": "Momentum leaders",
@@ -55,11 +55,11 @@
    "market_filter": true,
    "verdict": "losing",
    "past_trades": 151,
-   "win_rate_pct": 35.76,
-   "avg_win_pct": 9.78,
-   "avg_loss_pct": -11.36,
-   "avg_per_trade_pct": -3.8,
-   "market_same_days_pct": -0.2
+   "win_rate_pct": 36.42,
+   "avg_win_pct": 9.67,
+   "avg_loss_pct": -11.18,
+   "avg_per_trade_pct": -3.59,
+   "market_same_days_pct": -0.01
   }
  },
  "picks": []

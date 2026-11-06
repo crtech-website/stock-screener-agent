@@ -1,9 +1,9 @@
 {
  "market": "crypto",
- "generated_utc": "2026-11-05T07:25:45Z",
- "generated_new_york": "Thursday, Nov 5, 2026, 2:25 AM New York time",
- "as_of": "2026-11-04",
- "prices_from": "the Nov 4 daily close (Nov 4, 7:00 PM New York time)",
+ "generated_utc": "2026-11-06T07:25:43Z",
+ "generated_new_york": "Friday, Nov 6, 2026, 2:25 AM New York time",
+ "as_of": "2026-11-05",
+ "prices_from": "the Nov 5 daily close (Nov 5, 7:00 PM New York time)",
  "market_mood": "Bitcoin is above its 200-day average: the overall market is in an uptrend.",
  "held_back": [
   "Connors RSI(2) pullback",
@@ -18,12 +18,12 @@
    "hold_days": 5,
    "market_filter": false,
    "verdict": "unproven",
-   "past_trades": 71,
-   "win_rate_pct": 66.2,
-   "avg_win_pct": 6.65,
-   "avg_loss_pct": -9.05,
-   "avg_per_trade_pct": 1.34,
-   "market_same_days_pct": 3.49
+   "past_trades": 74,
+   "win_rate_pct": 67.57,
+   "avg_win_pct": 6.49,
+   "avg_loss_pct": -9.2,
+   "avg_per_trade_pct": 1.4,
+   "market_same_days_pct": 3.78
   },
   "connors_rsi2": {
    "label": "Connors RSI(2) pullback",
@@ -31,35 +31,35 @@
    "market_filter": false,
    "verdict": "losing",
    "past_trades": 199,
-   "win_rate_pct": 35.68,
-   "avg_win_pct": 3.89,
-   "avg_loss_pct": -7.53,
-   "avg_per_trade_pct": -3.45,
-   "market_same_days_pct": -0.45
+   "win_rate_pct": 35.18,
+   "avg_win_pct": 3.9,
+   "avg_loss_pct": -7.57,
+   "avg_per_trade_pct": -3.54,
+   "market_same_days_pct": -0.5
   },
   "trend_breakout": {
    "label": "Trend breakout",
    "hold_days": 20,
    "market_filter": true,
    "verdict": "losing",
-   "past_trades": 108,
-   "win_rate_pct": 33.33,
-   "avg_win_pct": 12.95,
+   "past_trades": 107,
+   "win_rate_pct": 32.71,
+   "avg_win_pct": 12.65,
    "avg_loss_pct": -11.9,
-   "avg_per_trade_pct": -3.62,
-   "market_same_days_pct": 1.06
+   "avg_per_trade_pct": -3.87,
+   "market_same_days_pct": 1.08
   },
   "momentum": {
    "label": "Momentum leaders",
    "hold_days": 7,
    "market_filter": true,
    "verdict": "losing",
-   "past_trades": 151,
-   "win_rate_pct": 36.42,
-   "avg_win_pct": 9.67,
-   "avg_loss_pct": -11.18,
-   "avg_per_trade_pct": -3.59,
-   "market_same_days_pct": -0.01
+   "past_trades": 158,
+   "win_rate_pct": 38.61,
+   "avg_win_pct": 9.96,
+   "avg_loss_pct": -11.11,
+   "avg_per_trade_pct": -2.98,
+   "market_same_days_pct": 0.15
   }
  },
  "picks": [
@@ -67,26 +67,26 @@
    "strategy": "oversold_bounce",
    "strategy_label": "Oversold bounce",
    "what_it_does": "Buys a coin right after a sharp, fast drop, betting on a quick rebound. This style usually wins more often than it loses, but each win is small.",
-   "why_picked": "Fell 21% in the last 2 days. Its RSI is 28 out of 100; under 30 means it has been sold very hard.",
+   "why_picked": "Fell 26% in the last 2 days. Its RSI is 26 out of 100; under 30 means it has been sold very hard.",
    "verdict": "unproven",
    "symbol": "TRUMP",
    "id": "official-trump",
    "name": "Official Trump",
-   "market_cap": 357678155.8149156,
-   "change_1d_pct": -20.0,
-   "change_5d_pct": -20.5,
-   "change_20d_pct": -32.7,
-   "as_of": "2026-11-04",
-   "close": 1.26895652,
-   "limit_buy": 1.28101161,
-   "stop": 1.11510477,
-   "target": 1.38434534,
+   "market_cap": 332915057.5508461,
+   "change_1d_pct": -6.9,
+   "change_5d_pct": -25.0,
+   "change_20d_pct": -35.2,
+   "as_of": "2026-11-05",
+   "close": 1.18110298,
+   "limit_buy": 1.19232345,
+   "stop": 1.02569013,
+   "target": 1.29766261,
    "hold_days": 5,
-   "position_pct": 7.7,
+   "position_pct": 7.2,
    "warnings": [
-    "news: TRUMP Coin Crashes Over 15% as Democrats\u2019 Midterm Win Paves Way for Crypto Probe - Cryptopolitan"
+    "news: TRUMP Coin Crashes 30% as Democrats Prepare Probe Into Trump\u2019s Crypto Ventures - Coin Edition"
    ],
-   "latest_headline": "TRUMP Coin Crashes Over 15% as Democrats\u2019 Midterm Win Paves Way for Crypto Probe - Cryptopolitan"
+   "latest_headline": "TRUMP Coin Fell 17% After the Midterms. Where Could It Be by 2030? - 24/7 Wall St."
   }
  ]
 }

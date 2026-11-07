@@ -1,9 +1,9 @@
 {
  "market": "crypto",
- "generated_utc": "2026-11-06T07:25:43Z",
- "generated_new_york": "Friday, Nov 6, 2026, 2:25 AM New York time",
- "as_of": "2026-11-05",
- "prices_from": "the Nov 5 daily close (Nov 5, 7:00 PM New York time)",
+ "generated_utc": "2026-11-07T06:38:01Z",
+ "generated_new_york": "Saturday, Nov 7, 2026, 1:38 AM New York time",
+ "as_of": "2026-11-06",
+ "prices_from": "the Nov 6 daily close (Nov 6, 7:00 PM New York time)",
  "market_mood": "Bitcoin is above its 200-day average: the overall market is in an uptrend.",
  "held_back": [
   "Connors RSI(2) pullback",
@@ -18,12 +18,12 @@
    "hold_days": 5,
    "market_filter": false,
    "verdict": "unproven",
-   "past_trades": 74,
-   "win_rate_pct": 67.57,
-   "avg_win_pct": 6.49,
-   "avg_loss_pct": -9.2,
-   "avg_per_trade_pct": 1.4,
-   "market_same_days_pct": 3.78
+   "past_trades": 85,
+   "win_rate_pct": 67.06,
+   "avg_win_pct": 6.6,
+   "avg_loss_pct": -9.49,
+   "avg_per_trade_pct": 1.3,
+   "market_same_days_pct": 3.71
   },
   "connors_rsi2": {
    "label": "Connors RSI(2) pullback",
@@ -31,11 +31,11 @@
    "market_filter": false,
    "verdict": "losing",
    "past_trades": 199,
-   "win_rate_pct": 35.18,
-   "avg_win_pct": 3.9,
+   "win_rate_pct": 34.67,
+   "avg_win_pct": 3.91,
    "avg_loss_pct": -7.57,
-   "avg_per_trade_pct": -3.54,
-   "market_same_days_pct": -0.5
+   "avg_per_trade_pct": -3.59,
+   "market_same_days_pct": -0.54
   },
   "trend_breakout": {
    "label": "Trend breakout",
@@ -62,31 +62,5 @@
    "market_same_days_pct": 0.15
   }
  },
- "picks": [
-  {
-   "strategy": "oversold_bounce",
-   "strategy_label": "Oversold bounce",
-   "what_it_does": "Buys a coin right after a sharp, fast drop, betting on a quick rebound. This style usually wins more often than it loses, but each win is small.",
-   "why_picked": "Fell 26% in the last 2 days. Its RSI is 26 out of 100; under 30 means it has been sold very hard.",
-   "verdict": "unproven",
-   "symbol": "TRUMP",
-   "id": "official-trump",
-   "name": "Official Trump",
-   "market_cap": 332915057.5508461,
-   "change_1d_pct": -6.9,
-   "change_5d_pct": -25.0,
-   "change_20d_pct": -35.2,
-   "as_of": "2026-11-05",
-   "close": 1.18110298,
-   "limit_buy": 1.19232345,
-   "stop": 1.02569013,
-   "target": 1.29766261,
-   "hold_days": 5,
-   "position_pct": 7.2,
-   "warnings": [
-    "news: TRUMP Coin Crashes 30% as Democrats Prepare Probe Into Trump\u2019s Crypto Ventures - Coin Edition"
-   ],
-   "latest_headline": "TRUMP Coin Fell 17% After the Midterms. Where Could It Be by 2030? - 24/7 Wall St."
-  }
- ]
+ "picks": []
 }

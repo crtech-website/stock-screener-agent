@@ -1,11 +1,12 @@
 {
  "market": "crypto",
- "generated_utc": "2026-11-11T07:08:58Z",
- "generated_new_york": "Wednesday, Nov 11, 2026, 2:08 AM New York time",
- "as_of": "2026-11-10",
- "prices_from": "the Nov 10 daily close (Nov 10, 7:00 PM New York time)",
+ "generated_utc": "2026-11-12T07:46:07Z",
+ "generated_new_york": "Thursday, Nov 12, 2026, 2:46 AM New York time",
+ "as_of": "2026-11-11",
+ "prices_from": "the Nov 11 daily close (Nov 11, 7:00 PM New York time)",
  "market_mood": "Bitcoin is above its 200-day average: the overall market is in an uptrend.",
  "held_back": [
+  "Oversold bounce",
   "Connors RSI(2) pullback",
   "Trend breakout",
   "Momentum leaders"
@@ -17,13 +18,13 @@
    "label": "Oversold bounce",
    "hold_days": 5,
    "market_filter": false,
-   "verdict": "unproven",
-   "past_trades": 65,
-   "win_rate_pct": 63.08,
-   "avg_win_pct": 6.82,
-   "avg_loss_pct": -9.61,
-   "avg_per_trade_pct": 0.75,
-   "market_same_days_pct": 3.18
+   "verdict": "lagging",
+   "past_trades": 83,
+   "win_rate_pct": 63.86,
+   "avg_win_pct": 6.27,
+   "avg_loss_pct": -9.53,
+   "avg_per_trade_pct": 0.56,
+   "market_same_days_pct": 3.21
   },
   "connors_rsi2": {
    "label": "Connors RSI(2) pullback",
@@ -35,7 +36,7 @@
    "avg_win_pct": 3.87,
    "avg_loss_pct": -7.4,
    "avg_per_trade_pct": -3.47,
-   "market_same_days_pct": -0.49
+   "market_same_days_pct": -0.5
   },
   "trend_breakout": {
    "label": "Trend breakout",
@@ -54,12 +55,12 @@
    "hold_days": 7,
    "market_filter": true,
    "verdict": "losing",
-   "past_trades": 156,
-   "win_rate_pct": 39.1,
+   "past_trades": 158,
+   "win_rate_pct": 38.61,
    "avg_win_pct": 9.7,
-   "avg_loss_pct": -10.21,
-   "avg_per_trade_pct": -2.42,
-   "market_same_days_pct": 0.38
+   "avg_loss_pct": -10.78,
+   "avg_per_trade_pct": -2.87,
+   "market_same_days_pct": 0.33
   }
  },
  "picks": []

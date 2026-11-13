@@ -1,12 +1,11 @@
 {
  "market": "crypto",
- "generated_utc": "2026-11-12T07:46:07Z",
- "generated_new_york": "Thursday, Nov 12, 2026, 2:46 AM New York time",
- "as_of": "2026-11-11",
- "prices_from": "the Nov 11 daily close (Nov 11, 7:00 PM New York time)",
- "market_mood": "Bitcoin is above its 200-day average: the overall market is in an uptrend.",
+ "generated_utc": "2026-11-13T07:19:41Z",
+ "generated_new_york": "Friday, Nov 13, 2026, 2:19 AM New York time",
+ "as_of": "2026-11-12",
+ "prices_from": "the Nov 12 daily close (Nov 12, 7:00 PM New York time)",
+ "market_mood": "Bitcoin is below its 200-day average: the market is weak; trend strategies are paused.",
  "held_back": [
-  "Oversold bounce",
   "Connors RSI(2) pullback",
   "Trend breakout",
   "Momentum leaders"
@@ -18,13 +17,13 @@
    "label": "Oversold bounce",
    "hold_days": 5,
    "market_filter": false,
-   "verdict": "lagging",
-   "past_trades": 83,
-   "win_rate_pct": 63.86,
-   "avg_win_pct": 6.27,
-   "avg_loss_pct": -9.53,
-   "avg_per_trade_pct": 0.56,
-   "market_same_days_pct": 3.21
+   "verdict": "unproven",
+   "past_trades": 68,
+   "win_rate_pct": 64.71,
+   "avg_win_pct": 6.59,
+   "avg_loss_pct": -9.6,
+   "avg_per_trade_pct": 0.88,
+   "market_same_days_pct": 3.26
   },
   "connors_rsi2": {
    "label": "Connors RSI(2) pullback",
@@ -43,25 +42,49 @@
    "hold_days": 20,
    "market_filter": true,
    "verdict": "losing",
-   "past_trades": 111,
-   "win_rate_pct": 32.43,
-   "avg_win_pct": 12.63,
-   "avg_loss_pct": -11.93,
-   "avg_per_trade_pct": -3.96,
-   "market_same_days_pct": 0.62
+   "past_trades": 114,
+   "win_rate_pct": 32.46,
+   "avg_win_pct": 12.64,
+   "avg_loss_pct": -11.87,
+   "avg_per_trade_pct": -3.92,
+   "market_same_days_pct": 0.51
   },
   "momentum": {
    "label": "Momentum leaders",
    "hold_days": 7,
    "market_filter": true,
    "verdict": "losing",
-   "past_trades": 158,
-   "win_rate_pct": 38.61,
-   "avg_win_pct": 9.7,
-   "avg_loss_pct": -10.78,
-   "avg_per_trade_pct": -2.87,
-   "market_same_days_pct": 0.33
+   "past_trades": 166,
+   "win_rate_pct": 39.76,
+   "avg_win_pct": 9.9,
+   "avg_loss_pct": -10.93,
+   "avg_per_trade_pct": -2.65,
+   "market_same_days_pct": 0.14
   }
  },
- "picks": []
+ "picks": [
+  {
+   "strategy": "oversold_bounce",
+   "strategy_label": "Oversold bounce",
+   "what_it_does": "Buys a coin right after a sharp, fast drop, betting on a quick rebound. This style usually wins more often than it loses, but each win is small.",
+   "why_picked": "Fell 15% in the last 2 days. Its RSI is 28 out of 100; under 30 means it has been sold very hard.",
+   "verdict": "unproven",
+   "symbol": "CASHCAT",
+   "id": "cash-cat",
+   "name": "Cash Cat",
+   "market_cap": 51127956.71019152,
+   "change_1d_pct": -6.7,
+   "change_5d_pct": -40.9,
+   "change_20d_pct": -48.1,
+   "as_of": "2026-11-12",
+   "close": 0.05176849,
+   "limit_buy": 0.05226029,
+   "stop": 0.03882637,
+   "target": 0.06252763,
+   "hold_days": 5,
+   "position_pct": 3.9,
+   "warnings": [],
+   "latest_headline": "Is DOGE's Golden Era Fading? Cash Cat Bounces 11% as Apeing Stage 12 Enters the Top 100x Meme Coin Race - openPR.com"
+  }
+ ]
 }

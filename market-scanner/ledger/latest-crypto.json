@@ -1,9 +1,9 @@
 {
  "market": "crypto",
- "generated_utc": "2026-11-16T07:17:59Z",
- "generated_new_york": "Monday, Nov 16, 2026, 2:17 AM New York time",
- "as_of": "2026-11-15",
- "prices_from": "the Nov 15 daily close (Nov 15, 7:00 PM New York time)",
+ "generated_utc": "2026-11-17T08:31:02Z",
+ "generated_new_york": "Tuesday, Nov 17, 2026, 3:31 AM New York time",
+ "as_of": "2026-11-16",
+ "prices_from": "the Nov 16 daily close (Nov 16, 7:00 PM New York time)",
  "market_mood": "Bitcoin is below its 200-day average: the market is weak; trend strategies are paused.",
  "held_back": [
   "Connors RSI(2) pullback",
@@ -18,99 +18,49 @@
    "hold_days": 5,
    "market_filter": false,
    "verdict": "unproven",
-   "past_trades": 67,
-   "win_rate_pct": 62.69,
-   "avg_win_pct": 6.42,
-   "avg_loss_pct": -9.32,
-   "avg_per_trade_pct": 0.55,
-   "market_same_days_pct": 3.32
+   "past_trades": 69,
+   "win_rate_pct": 62.32,
+   "avg_win_pct": 6.73,
+   "avg_loss_pct": -10.08,
+   "avg_per_trade_pct": 0.4,
+   "market_same_days_pct": 2.9
   },
   "connors_rsi2": {
    "label": "Connors RSI(2) pullback",
    "hold_days": 5,
    "market_filter": false,
    "verdict": "losing",
-   "past_trades": 202,
-   "win_rate_pct": 35.64,
-   "avg_win_pct": 3.83,
-   "avg_loss_pct": -7.52,
-   "avg_per_trade_pct": -3.48,
-   "market_same_days_pct": -0.56
+   "past_trades": 205,
+   "win_rate_pct": 35.61,
+   "avg_win_pct": 3.84,
+   "avg_loss_pct": -7.61,
+   "avg_per_trade_pct": -3.53,
+   "market_same_days_pct": -0.7
   },
   "trend_breakout": {
    "label": "Trend breakout",
    "hold_days": 20,
    "market_filter": true,
    "verdict": "losing",
-   "past_trades": 114,
-   "win_rate_pct": 32.46,
+   "past_trades": 116,
+   "win_rate_pct": 32.76,
    "avg_win_pct": 12.64,
-   "avg_loss_pct": -11.87,
-   "avg_per_trade_pct": -3.92,
-   "market_same_days_pct": 0.47
+   "avg_loss_pct": -11.95,
+   "avg_per_trade_pct": -3.9,
+   "market_same_days_pct": 0.36
   },
   "momentum": {
    "label": "Momentum leaders",
    "hold_days": 7,
    "market_filter": true,
    "verdict": "losing",
-   "past_trades": 166,
-   "win_rate_pct": 39.16,
-   "avg_win_pct": 10.22,
-   "avg_loss_pct": -10.99,
-   "avg_per_trade_pct": -2.68,
-   "market_same_days_pct": 0.1
+   "past_trades": 162,
+   "win_rate_pct": 40.12,
+   "avg_win_pct": 10.23,
+   "avg_loss_pct": -11.16,
+   "avg_per_trade_pct": -2.58,
+   "market_same_days_pct": -0.21
   }
  },
- "picks": [
-  {
-   "strategy": "oversold_bounce",
-   "strategy_label": "Oversold bounce",
-   "what_it_does": "Buys a coin right after a sharp, fast drop, betting on a quick rebound. This style usually wins more often than it loses, but each win is small.",
-   "why_picked": "Fell 20% in the last 2 days. Its RSI is 25 out of 100; under 30 means it has been sold very hard.",
-   "verdict": "unproven",
-   "symbol": "ASTER",
-   "id": "aster-2",
-   "name": "Aster",
-   "market_cap": 1330422199.3628113,
-   "change_1d_pct": 3.2,
-   "change_5d_pct": -18.9,
-   "change_20d_pct": -27.3,
-   "as_of": "2026-11-15",
-   "close": 0.51729992,
-   "limit_buy": 0.52221427,
-   "stop": 0.47412191,
-   "target": 0.54968343,
-   "hold_days": 5,
-   "position_pct": 10.9,
-   "warnings": [
-    "news: ASTER Surges 30% Before Crashing 32% as Aster Probes Liquidations - Altcoin Buzz",
-    "news: ASTER price plunges 32% as CEO probes suspected malicious liquidations - Crypto News"
-   ],
-   "latest_headline": "ASTER Surges 30% Before Crashing 32% as Aster Probes Liquidations - Altcoin Buzz"
-  },
-  {
-   "strategy": "oversold_bounce",
-   "strategy_label": "Oversold bounce",
-   "what_it_does": "Buys a coin right after a sharp, fast drop, betting on a quick rebound. This style usually wins more often than it loses, but each win is small.",
-   "why_picked": "Fell 18% in the last 2 days. Its RSI is 25 out of 100; under 30 means it has been sold very hard.",
-   "verdict": "unproven",
-   "symbol": "PENGU",
-   "id": "pudgy-penguins",
-   "name": "Pudgy Penguins",
-   "market_cap": 312195277.3081061,
-   "change_1d_pct": 1.6,
-   "change_5d_pct": -19.9,
-   "change_20d_pct": -34.0,
-   "as_of": "2026-11-15",
-   "close": 0.00496649,
-   "limit_buy": 0.00501367,
-   "stop": 0.00443753,
-   "target": 0.00536321,
-   "hold_days": 5,
-   "position_pct": 8.7,
-   "warnings": [],
-   "latest_headline": "Pudgy Penguins technical analysis: Watch $0.00455 support as downside risk increases - Traders Union"
-  }
- ]
+ "picks": []
 }

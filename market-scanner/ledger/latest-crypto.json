@@ -1,11 +1,12 @@
 {
  "market": "crypto",
- "generated_utc": "2026-11-17T08:31:02Z",
- "generated_new_york": "Tuesday, Nov 17, 2026, 3:31 AM New York time",
- "as_of": "2026-11-16",
- "prices_from": "the Nov 16 daily close (Nov 16, 7:00 PM New York time)",
+ "generated_utc": "2026-11-18T07:58:38Z",
+ "generated_new_york": "Wednesday, Nov 18, 2026, 2:58 AM New York time",
+ "as_of": "2026-11-17",
+ "prices_from": "the Nov 17 daily close (Nov 17, 7:00 PM New York time)",
  "market_mood": "Bitcoin is below its 200-day average: the market is weak; trend strategies are paused.",
  "held_back": [
+  "Oversold bounce",
   "Connors RSI(2) pullback",
   "Trend breakout",
   "Momentum leaders"
@@ -17,37 +18,37 @@
    "label": "Oversold bounce",
    "hold_days": 5,
    "market_filter": false,
-   "verdict": "unproven",
-   "past_trades": 69,
-   "win_rate_pct": 62.32,
-   "avg_win_pct": 6.73,
-   "avg_loss_pct": -10.08,
-   "avg_per_trade_pct": 0.4,
-   "market_same_days_pct": 2.9
+   "verdict": "lagging",
+   "past_trades": 67,
+   "win_rate_pct": 64.18,
+   "avg_win_pct": 6.35,
+   "avg_loss_pct": -9.61,
+   "avg_per_trade_pct": 0.64,
+   "market_same_days_pct": 3.3
   },
   "connors_rsi2": {
    "label": "Connors RSI(2) pullback",
    "hold_days": 5,
    "market_filter": false,
    "verdict": "losing",
-   "past_trades": 205,
-   "win_rate_pct": 35.61,
-   "avg_win_pct": 3.84,
-   "avg_loss_pct": -7.61,
+   "past_trades": 209,
+   "win_rate_pct": 35.41,
+   "avg_win_pct": 3.83,
+   "avg_loss_pct": -7.57,
    "avg_per_trade_pct": -3.53,
-   "market_same_days_pct": -0.7
+   "market_same_days_pct": -0.84
   },
   "trend_breakout": {
    "label": "Trend breakout",
    "hold_days": 20,
    "market_filter": true,
    "verdict": "losing",
-   "past_trades": 116,
-   "win_rate_pct": 32.76,
-   "avg_win_pct": 12.64,
-   "avg_loss_pct": -11.95,
-   "avg_per_trade_pct": -3.9,
-   "market_same_days_pct": 0.36
+   "past_trades": 118,
+   "win_rate_pct": 32.2,
+   "avg_win_pct": 12.63,
+   "avg_loss_pct": -11.86,
+   "avg_per_trade_pct": -3.97,
+   "market_same_days_pct": 0.28
   },
   "momentum": {
    "label": "Momentum leaders",

@@ -1,12 +1,11 @@
 {
  "market": "crypto",
- "generated_utc": "2026-11-18T07:58:38Z",
- "generated_new_york": "Wednesday, Nov 18, 2026, 2:58 AM New York time",
- "as_of": "2026-11-17",
- "prices_from": "the Nov 17 daily close (Nov 17, 7:00 PM New York time)",
+ "generated_utc": "2026-11-19T07:57:33Z",
+ "generated_new_york": "Thursday, Nov 19, 2026, 2:57 AM New York time",
+ "as_of": "2026-11-18",
+ "prices_from": "the Nov 18 daily close (Nov 18, 7:00 PM New York time)",
  "market_mood": "Bitcoin is below its 200-day average: the market is weak; trend strategies are paused.",
  "held_back": [
-  "Oversold bounce",
   "Connors RSI(2) pullback",
   "Trend breakout",
   "Momentum leaders"
@@ -18,37 +17,37 @@
    "label": "Oversold bounce",
    "hold_days": 5,
    "market_filter": false,
-   "verdict": "lagging",
+   "verdict": "unproven",
    "past_trades": 67,
    "win_rate_pct": 64.18,
-   "avg_win_pct": 6.35,
+   "avg_win_pct": 6.5,
    "avg_loss_pct": -9.61,
-   "avg_per_trade_pct": 0.64,
-   "market_same_days_pct": 3.3
+   "avg_per_trade_pct": 0.73,
+   "market_same_days_pct": 3.28
   },
   "connors_rsi2": {
    "label": "Connors RSI(2) pullback",
    "hold_days": 5,
    "market_filter": false,
    "verdict": "losing",
-   "past_trades": 209,
-   "win_rate_pct": 35.41,
+   "past_trades": 214,
+   "win_rate_pct": 34.58,
    "avg_win_pct": 3.83,
-   "avg_loss_pct": -7.57,
-   "avg_per_trade_pct": -3.53,
-   "market_same_days_pct": -0.84
+   "avg_loss_pct": -7.67,
+   "avg_per_trade_pct": -3.7,
+   "market_same_days_pct": -1.04
   },
   "trend_breakout": {
    "label": "Trend breakout",
    "hold_days": 20,
    "market_filter": true,
    "verdict": "losing",
-   "past_trades": 118,
-   "win_rate_pct": 32.2,
+   "past_trades": 119,
+   "win_rate_pct": 31.93,
    "avg_win_pct": 12.63,
-   "avg_loss_pct": -11.86,
-   "avg_per_trade_pct": -3.97,
-   "market_same_days_pct": 0.28
+   "avg_loss_pct": -11.92,
+   "avg_per_trade_pct": -4.08,
+   "market_same_days_pct": 0.23
   },
   "momentum": {
    "label": "Momentum leaders",

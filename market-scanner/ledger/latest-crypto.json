@@ -1,9 +1,9 @@
 {
  "market": "crypto",
- "generated_utc": "2026-11-22T07:28:43Z",
- "generated_new_york": "Sunday, Nov 22, 2026, 2:28 AM New York time",
- "as_of": "2026-11-21",
- "prices_from": "the Nov 21 daily close (Nov 21, 7:00 PM New York time)",
+ "generated_utc": "2026-11-23T08:15:08Z",
+ "generated_new_york": "Monday, Nov 23, 2026, 3:15 AM New York time",
+ "as_of": "2026-11-22",
+ "prices_from": "the Nov 22 daily close (Nov 22, 7:00 PM New York time)",
  "market_mood": "Bitcoin is below its 200-day average: the market is weak; trend strategies are paused.",
  "held_back": [
   "Oversold bounce",
@@ -19,24 +19,24 @@
    "hold_days": 5,
    "market_filter": false,
    "verdict": "losing",
-   "past_trades": 87,
-   "win_rate_pct": 51.72,
-   "avg_win_pct": 6.47,
-   "avg_loss_pct": -7.73,
-   "avg_per_trade_pct": -0.39,
-   "market_same_days_pct": 2.25
+   "past_trades": 90,
+   "win_rate_pct": 51.11,
+   "avg_win_pct": 6.32,
+   "avg_loss_pct": -8.1,
+   "avg_per_trade_pct": -0.73,
+   "market_same_days_pct": 2.11
   },
   "connors_rsi2": {
    "label": "Connors RSI(2) pullback",
    "hold_days": 5,
    "market_filter": false,
    "verdict": "losing",
-   "past_trades": 221,
-   "win_rate_pct": 35.29,
-   "avg_win_pct": 3.83,
+   "past_trades": 220,
+   "win_rate_pct": 35.0,
+   "avg_win_pct": 3.84,
    "avg_loss_pct": -7.69,
-   "avg_per_trade_pct": -3.62,
-   "market_same_days_pct": -1.04
+   "avg_per_trade_pct": -3.65,
+   "market_same_days_pct": -1.02
   },
   "trend_breakout": {
    "label": "Trend breakout",

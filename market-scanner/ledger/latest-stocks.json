@@ -1,7 +1,7 @@
 {
  "market": "stocks",
- "generated_utc": "2026-11-26T18:36:31Z",
- "generated_new_york": "Thursday, Nov 26, 2026, 1:36 PM New York time",
+ "generated_utc": "2026-11-27T18:25:02Z",
+ "generated_new_york": "Friday, Nov 27, 2026, 1:25 PM New York time",
  "as_of": "2026-11-25",
  "prices_from": "the Nov 25 market close (4:00 PM New York time)",
  "market_mood": "S&P 500 (SPY) is below its 200-day average: the market is weak; trend strategies are paused.",
@@ -18,23 +18,23 @@
    "hold_days": 5,
    "market_filter": false,
    "verdict": "losing",
-   "past_trades": 4372,
-   "win_rate_pct": 46.09,
-   "avg_win_pct": 11.81,
-   "avg_loss_pct": -13.17,
-   "avg_per_trade_pct": -1.66,
-   "market_same_days_pct": 0.23
+   "past_trades": 4245,
+   "win_rate_pct": 46.22,
+   "avg_win_pct": 11.76,
+   "avg_loss_pct": -12.9,
+   "avg_per_trade_pct": -1.5,
+   "market_same_days_pct": 0.25
   },
   "connors_rsi2": {
    "label": "Connors RSI(2) pullback",
    "hold_days": 5,
    "market_filter": false,
    "verdict": "unproven",
-   "past_trades": 18678,
-   "win_rate_pct": 61.86,
-   "avg_win_pct": 3.55,
+   "past_trades": 18653,
+   "win_rate_pct": 61.85,
+   "avg_win_pct": 3.54,
    "avg_loss_pct": -4.95,
-   "avg_per_trade_pct": 0.31,
+   "avg_per_trade_pct": 0.3,
    "market_same_days_pct": -0.03
   },
   "ibs_reversion": {
@@ -42,10 +42,10 @@
    "hold_days": 3,
    "market_filter": false,
    "verdict": "unproven",
-   "past_trades": 59385,
+   "past_trades": 59325,
    "win_rate_pct": 55.0,
    "avg_win_pct": 3.25,
-   "avg_loss_pct": -3.79,
+   "avg_loss_pct": -3.8,
    "avg_per_trade_pct": 0.08,
    "market_same_days_pct": 0.04
   },
@@ -54,11 +54,11 @@
    "hold_days": 20,
    "market_filter": true,
    "verdict": "losing",
-   "past_trades": 2616,
-   "win_rate_pct": 39.33,
-   "avg_win_pct": 11.56,
-   "avg_loss_pct": -8.05,
-   "avg_per_trade_pct": -0.34,
+   "past_trades": 2612,
+   "win_rate_pct": 39.28,
+   "avg_win_pct": 11.51,
+   "avg_loss_pct": -8.06,
+   "avg_per_trade_pct": -0.37,
    "market_same_days_pct": -0.5
   },
   "momentum": {
@@ -100,7 +100,7 @@
     "8-K 5.02 officer/director departure 2026-11-12",
     "8-K 5.02 officer/director departure 2026-10-28"
    ],
-   "latest_headline": "HF Sinclair Corporation (DINO) stock price, news, quote and history - Yahoo Finance UK"
+   "latest_headline": "HF Sinclair (DINO) Down 23.4% Since Last Earnings Report: Can It Rebound? - Yahoo Finance"
   },
   {
    "strategy": "connors_rsi2",
@@ -125,7 +125,7 @@
    "warnings": [
     "8-K 5.02 officer/director departure 2026-09-03"
    ],
-   "latest_headline": "MediaAlpha (MAX) director Nonko sold 34,461 shares for $458K at an average $13.29 under a 10b5-1 plan - Quantisnow"
+   "latest_headline": "RE/MAX (REAX) Stock Is Up 13.0% Today Without Company News - GuruFocus"
   },
   {
    "strategy": "connors_rsi2",
@@ -150,7 +150,7 @@
    "warnings": [
     "8-K 5.02 officer/director departure 2026-10-29"
    ],
-   "latest_headline": "Marathon Petroleum Corporation (MPC) Stock Forecasts - Yahoo! Finance Canada"
+   "latest_headline": "Marathon Petroleum gains as investors continue to reward capital returns and strong refining fundamentals - Quiver Quantitative"
   },
   {
    "strategy": "ibs_reversion",
@@ -198,7 +198,7 @@
    "hold_days": 3,
    "position_pct": 14.5,
    "warnings": [],
-   "latest_headline": "Gatekeeper Systems Inc. Stock Watch: What Is Driving CN:GSI Today and What Comes Next | Cboe Canada All-Equity Index | Small Cap Growth Stock - kalkine.ca"
+   "latest_headline": "CBOE Bets on Prediction Markets to Broaden Its Retail Footprint - TradingView"
   },
   {
    "strategy": "ibs_reversion",
@@ -221,7 +221,7 @@
    "hold_days": 3,
    "position_pct": 20,
    "warnings": [],
-   "latest_headline": "James W. Hunt III proposes to sell 4,275 Eversource Energy (ES) shares. - Stock Titan"
+   "latest_headline": "Why is Dottikon ES stock surging today? - Investing.com"
   }
  ]
 }

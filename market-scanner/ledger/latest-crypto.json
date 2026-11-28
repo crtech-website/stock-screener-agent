@@ -1,9 +1,9 @@
 {
  "market": "crypto",
- "generated_utc": "2026-11-27T09:06:16Z",
- "generated_new_york": "Friday, Nov 27, 2026, 4:06 AM New York time",
- "as_of": "2026-11-26",
- "prices_from": "the Nov 26 daily close (Nov 26, 7:00 PM New York time)",
+ "generated_utc": "2026-11-28T08:28:16Z",
+ "generated_new_york": "Saturday, Nov 28, 2026, 3:28 AM New York time",
+ "as_of": "2026-11-27",
+ "prices_from": "the Nov 27 daily close (Nov 27, 7:00 PM New York time)",
  "market_mood": "Bitcoin is below its 200-day average: the market is weak; trend strategies are paused.",
  "held_back": [
   "Oversold bounce",
@@ -19,12 +19,12 @@
    "hold_days": 5,
    "market_filter": false,
    "verdict": "losing",
-   "past_trades": 89,
-   "win_rate_pct": 49.44,
-   "avg_win_pct": 6.19,
-   "avg_loss_pct": -7.81,
-   "avg_per_trade_pct": -0.89,
-   "market_same_days_pct": 2.23
+   "past_trades": 88,
+   "win_rate_pct": 48.86,
+   "avg_win_pct": 6.33,
+   "avg_loss_pct": -7.57,
+   "avg_per_trade_pct": -0.78,
+   "market_same_days_pct": 2.31
   },
   "connors_rsi2": {
    "label": "Connors RSI(2) pullback",
